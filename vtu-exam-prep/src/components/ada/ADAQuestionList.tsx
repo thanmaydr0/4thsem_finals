@@ -149,14 +149,14 @@ export default function ADAQuestionList({ questions, loading = false }: ADAQuest
   return (
     <div className="max-w-4xl mx-auto">
       {/* Sort Controls */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <p className="text-sm text-muted">
           {sorted.length} question{sorted.length !== 1 ? 's' : ''}
           {selectedModuleNumber ? ` in Module ${selectedModuleNumber}` : ''}
         </p>
 
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-0.5">
-          <ArrowUpDown size={13} className="text-muted ml-2 mr-1" />
+        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-0.5 overflow-x-auto no-scrollbar w-full sm:w-auto mt-3 sm:mt-0">
+          <ArrowUpDown size={13} className="text-muted ml-2 mr-1 shrink-0" />
           {(['frequency', 'recency', 'sequence'] as SortMode[]).map((mode) => (
             <button
               key={mode}
@@ -309,9 +309,9 @@ function QuestionCard({
         statusConf.border
       )}
     >
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         {/* Top Row: Badge + Frequency + Status */}
-        <div className="flex items-start justify-between gap-4 mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Question number */}
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-accent-subtle/40 text-accent text-xs font-bold shrink-0">
@@ -340,7 +340,7 @@ function QuestionCard({
           </div>
 
           {/* Status Selector */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0 shrink-0">
             {(Object.entries(STATUS_CONFIG) as [StatusType, typeof STATUS_CONFIG[StatusType]][]).map(
               ([key, conf]) => {
                 const Icon = conf.icon;
@@ -437,7 +437,7 @@ function QuestionCard({
           <button
             onClick={() => setNotesOpen(!notesOpen)}
             className={clsx(
-              'inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors ml-auto',
+              'inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors w-full sm:w-auto sm:ml-auto',
               notesOpen
                 ? 'bg-accent/10 border-accent/20 text-accent'
                 : 'bg-card border-border text-muted hover:text-foreground hover:border-border-hover'

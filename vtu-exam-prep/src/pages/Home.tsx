@@ -131,7 +131,7 @@ export default function Home() {
         </div>
 
         {/* Countdown Widget */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-6 p-4 rounded-2xl bg-card border border-border">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4 rounded-2xl bg-card border border-border w-full max-w-md mx-auto sm:max-w-none sm:w-auto sm:inline-flex">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
               <Calendar className="text-accent" size={18} />
@@ -167,7 +167,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-px h-10 bg-border hidden sm:block" />
+          <div className="w-full h-px sm:w-px sm:h-10 bg-border" />
 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
@@ -264,15 +264,15 @@ export default function Home() {
                     to="/ada"
                     className="block p-3 rounded-xl bg-background border border-border hover:border-accent/40 transition-colors group"
                   >
-                    <p className="text-sm font-medium line-clamp-2 mb-2 group-hover:text-accent transition-colors">
+                    <p className="text-sm font-medium line-clamp-2 mb-3 group-hover:text-accent transition-colors">
                       {q.question_text}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                    <div className="flex flex-wrap items-center gap-2 mt-auto">
+                      <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                         {q.frequency}× Frequency
                       </span>
-                      <span className="text-[10px] text-muted flex items-center gap-1">
-                        Module {q.module_id ? 'X' : '?'} {/* Not perfectly joining modules here, just a hint */}
+                      <span className="text-[10px] text-muted flex items-center gap-1 px-2 py-1 bg-card rounded-full border border-border">
+                        Module {q.module_id ? 'X' : '?'}
                         <ChevronRight size={10} />
                       </span>
                     </div>
@@ -402,14 +402,14 @@ function SubjectCard({
           <div className="h-10 w-full animate-pulse bg-background rounded-lg" />
         ) : (
           <>
-            <div className="flex items-center justify-between text-xs font-medium">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-1 text-[11px] sm:text-xs font-medium">
               <span className="text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 size={12} /> {stats.confident} confident
               </span>
               <span className="text-amber-400 flex items-center gap-1">
                 <Clock size={12} /> {stats.reviewing} reviewing
               </span>
-              <span className="text-zinc-500 flex items-center gap-1">
+              <span className="text-zinc-500 flex items-center gap-1 w-full sm:w-auto mt-1 sm:mt-0">
                 <Circle size={12} /> {stats.notStarted} to do
               </span>
             </div>

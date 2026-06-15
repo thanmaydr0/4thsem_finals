@@ -231,22 +231,22 @@ export default function StudyLayout({
           <div className="h-5 w-px bg-border" />
 
           <div>
-            <h1 className="text-lg font-semibold leading-tight">
+            <h1 className="text-base sm:text-lg font-semibold leading-tight truncate max-w-[120px] sm:max-w-xs">
               {subjectName}
             </h1>
-            <p className="text-xs text-muted">{courseCode}</p>
+            <p className="text-xs text-muted truncate max-w-[120px] sm:max-w-xs">{courseCode}</p>
           </div>
         </div>
 
         {/* Progress Indicator */}
         <div className="flex items-center gap-3">
-          <div className="text-right mr-2">
+          <div className="text-right mr-2 hidden sm:block">
             <p className="text-sm font-medium">
               <span className="text-accent">{progressCount.reviewed}</span>
               <span className="text-muted"> / {progressCount.total} reviewed</span>
             </p>
           </div>
-          <div className="w-32 h-2 rounded-full bg-border overflow-hidden">
+          <div className="w-20 sm:w-32 h-2 rounded-full bg-border overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-accent to-purple-500 transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
@@ -415,9 +415,9 @@ export default function StudyLayout({
         {!focusMode && !leftSidebarOpen && (
           <button
             onClick={toggleLeftSidebar}
-            className="lg:hidden fixed bottom-4 left-4 z-50 p-3 rounded-full bg-surface border border-border shadow-lg text-foreground"
+            className="lg:hidden fixed bottom-6 left-6 z-50 p-3.5 rounded-full bg-surface border border-border shadow-2xl text-foreground"
           >
-            <PanelLeftOpen size={18} />
+            <PanelLeftOpen size={20} />
           </button>
         )}
 
@@ -460,9 +460,9 @@ export default function StudyLayout({
         {!focusMode && !rightSidebarOpen && (
           <button
             onClick={toggleRightSidebar}
-            className="lg:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-surface border border-border shadow-lg text-foreground"
+            className="lg:hidden fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-surface border border-border shadow-2xl text-foreground"
           >
-            <PanelRightOpen size={18} />
+            <PanelRightOpen size={20} />
           </button>
         )}
 
