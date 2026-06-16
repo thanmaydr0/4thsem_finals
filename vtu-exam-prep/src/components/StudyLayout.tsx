@@ -392,8 +392,8 @@ export default function StudyLayout({
                   Developed by Thanmay D R
                 </p>
                 <p className="text-[10px] text-muted-foreground/70">
-                  <a href="mailto:thanmay.cseaiml24@cmrit.ac.in" className="hover:text-accent transition-colors">
-                    thanmay.cseaiml24@cmrit.ac.in
+                  <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
+                    thanmaydambekodi@gmail.com
                   </a>
                 </p>
               </div>

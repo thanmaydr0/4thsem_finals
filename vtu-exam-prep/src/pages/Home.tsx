@@ -334,8 +334,8 @@ export default function Home() {
           Developed by Thanmay D R
         </p>
         <p className="text-[11px] text-muted-foreground mt-1">
-          <a href="mailto:thanmay.cseaiml24@cmrit.ac.in" className="hover:text-accent transition-colors">
-            thanmay.cseaiml24@cmrit.ac.in
+          <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
+            thanmaydambekodi@gmail.com
           </a>
         </p>
       </footer>
