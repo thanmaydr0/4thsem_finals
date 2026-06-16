@@ -55,6 +55,7 @@ export default function StudyLayout({
     setFocusMode,
     toggleFocusMode,
     setShowShortcutsModal,
+    setLeftSidebarOpen,
     setRightSidebarOpen,
     setShowFeedbackModal,
   } = useStudyStore();
@@ -64,6 +65,30 @@ export default function StudyLayout({
   const [progressCount, setProgressCount] = useState({ reviewed: 0, total: 0 });
 
   const mainRef = useRef<HTMLElement>(null);
+
+  // Prevent mobile overlapping sidebars
+  useEffect(() => {
+    if (window.innerWidth < 1024) {
+      if (leftSidebarOpen && rightSidebarOpen) {
+        setLeftSidebarOpen(false);
+        setRightSidebarOpen(false);
+      }
+    }
+  }, [leftSidebarOpen, rightSidebarOpen, setLeftSidebarOpen, setRightSidebarOpen]);
+
+  const handleToggleLeftSidebar = () => {
+    if (!leftSidebarOpen && window.innerWidth < 1024 && rightSidebarOpen) {
+      setRightSidebarOpen(false);
+    }
+    toggleLeftSidebar();
+  };
+
+  const handleToggleRightSidebar = () => {
+    if (!rightSidebarOpen && window.innerWidth < 1024 && leftSidebarOpen) {
+      setLeftSidebarOpen(false);
+    }
+    toggleRightSidebar();
+  };
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -227,7 +252,7 @@ export default function StudyLayout({
         <div className="flex items-center gap-4">
           <Link
             to="/"
-            className="flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+            className="flex items-center gap-2 p-2 text-muted hover:text-foreground transition-colors"
           >
             <Home size={18} />
           </Link>
@@ -269,7 +294,7 @@ export default function StudyLayout({
           </button>
           <button
             onClick={toggleFocusMode}
-            className="p-1.5 rounded-md text-muted hover:text-accent hover:bg-accent-subtle/30 transition-colors"
+            className="p-2 rounded-md text-muted hover:text-accent hover:bg-accent-subtle/30 transition-colors"
             title="Focus Mode (f)"
           >
             <Maximize size={16} />
@@ -284,7 +309,7 @@ export default function StudyLayout({
         {!focusMode && leftSidebarOpen && (
           <div
             className="fixed inset-0 bg-background/50 backdrop-blur-sm z-30 lg:hidden"
-            onClick={toggleLeftSidebar}
+            onClick={handleToggleLeftSidebar}
           />
         )}
 
@@ -311,7 +336,7 @@ export default function StudyLayout({
                     placeholder="Search questions..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors min-h-[44px]"
                   />
                 </div>
               </div>
@@ -402,7 +427,7 @@ export default function StudyLayout({
                         key={file}
                         href={`/papers/${subjectId}/${file}`}
                         download
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-accent-subtle/20 hover:text-accent rounded-lg transition-colors group"
+                        className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground/80 hover:bg-accent-subtle/20 hover:text-accent rounded-lg transition-colors group"
                       >
                         <Download size={14} className="text-muted group-hover:text-accent transition-colors shrink-0" />
                         <span className="truncate capitalize">{file.replace('.pdf', '')}</span>
@@ -416,22 +441,22 @@ export default function StudyLayout({
               <div className="p-4 border-t border-border mt-auto shrink-0 flex flex-col items-center">
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className="w-full py-2 mb-4 text-xs font-semibold bg-accent/10 text-accent hover:bg-accent/20 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 mb-4 text-xs font-semibold bg-accent/10 text-accent hover:bg-accent/20 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   Give Feedback
                 </button>
 
                 <div className="opacity-50 hover:opacity-100 transition-opacity text-center w-full">
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
+                  <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
                     Developed by Thanmay D R
                   </p>
                   <div className="flex flex-col items-center gap-1.5">
-                    <p className="text-[10px] text-muted-foreground/70">
+                    <p className="text-[11px] text-muted-foreground/70">
                       <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
                         thanmaydambekodi@gmail.com
                       </a>
                     </p>
-                    <p className="text-[10px] text-muted-foreground/70">
+                    <p className="text-[11px] text-muted-foreground/70">
                       <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
                         <GithubIcon size={10} /> thanmaydr0
                       </a>
@@ -447,7 +472,7 @@ export default function StudyLayout({
         {/* Left sidebar toggle (always visible on desktop, visible on mobile if closed) */}
         {!focusMode && (
           <button
-            onClick={toggleLeftSidebar}
+            onClick={handleToggleLeftSidebar}
             className="hidden lg:flex items-center justify-center w-6 shrink-0 border-r border-border hover:bg-card transition-colors group z-10"
             title={leftSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -466,12 +491,15 @@ export default function StudyLayout({
         )}
 
         {/* Mobile menu toggle (floating) */}
-        {!focusMode && !leftSidebarOpen && (
+        {!focusMode && (
           <button
-            onClick={toggleLeftSidebar}
-            className="lg:hidden fixed bottom-6 left-6 z-50 p-3.5 rounded-full bg-surface border border-border shadow-2xl text-foreground"
+            onClick={handleToggleLeftSidebar}
+            className={clsx(
+              "lg:hidden fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-6 z-50 p-3.5 rounded-full border shadow-2xl transition-all duration-200",
+              leftSidebarOpen ? "bg-accent border-accent text-white" : "bg-surface border-border text-foreground"
+            )}
           >
-            <PanelLeftOpen size={20} />
+            {leftSidebarOpen ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
           </button>
         )}
 
@@ -480,7 +508,7 @@ export default function StudyLayout({
           {focusMode && (
             <button
               onClick={() => setFocusMode(false)}
-              className="fixed top-4 right-6 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border shadow-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
+              className="fixed top-4 right-6 z-50 flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-full bg-surface border border-border shadow-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
             >
               <Minimize size={14} />
               Exit Focus
@@ -492,7 +520,7 @@ export default function StudyLayout({
         {/* Right sidebar toggle (always visible on desktop) */}
         {!focusMode && (
           <button
-            onClick={toggleRightSidebar}
+            onClick={handleToggleRightSidebar}
             className="hidden lg:flex items-center justify-center w-6 shrink-0 border-l border-border hover:bg-card transition-colors group z-10"
             title={rightSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -511,12 +539,15 @@ export default function StudyLayout({
         )}
 
         {/* Mobile notes toggle (floating) */}
-        {!focusMode && !rightSidebarOpen && (
+        {!focusMode && (
           <button
-            onClick={toggleRightSidebar}
-            className="lg:hidden fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-surface border border-border shadow-2xl text-foreground"
+            onClick={handleToggleRightSidebar}
+            className={clsx(
+              "lg:hidden fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 p-3.5 rounded-full border shadow-2xl transition-all duration-200",
+              rightSidebarOpen ? "bg-accent border-accent text-white" : "bg-surface border-border text-foreground"
+            )}
           >
-            <PanelRightOpen size={20} />
+            {rightSidebarOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
           </button>
         )}
 
@@ -524,7 +555,7 @@ export default function StudyLayout({
         {!focusMode && rightSidebarOpen && (
           <div
             className="fixed inset-0 bg-background/50 backdrop-blur-sm z-30 lg:hidden"
-            onClick={toggleRightSidebar}
+            onClick={handleToggleRightSidebar}
           />
         )}
 
@@ -534,7 +565,7 @@ export default function StudyLayout({
             className={clsx(
               'panel-transition flex flex-col border-l border-border bg-surface/95 lg:bg-surface/50 shrink-0 overflow-hidden',
               'fixed lg:relative inset-y-0 right-0 z-40 lg:z-auto h-full',
-              rightSidebarOpen ? 'w-[320px] min-w-[320px] translate-x-0' : 'w-[320px] translate-x-full lg:w-0 lg:min-w-0 lg:translate-x-0'
+              rightSidebarOpen ? 'w-[min(320px,85vw)] min-w-[min(320px,85vw)] translate-x-0' : 'w-[min(320px,85vw)] translate-x-full lg:w-0 lg:min-w-0 lg:translate-x-0'
             )}
           >
           {rightSidebarOpen && (

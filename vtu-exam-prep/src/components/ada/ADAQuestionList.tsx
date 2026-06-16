@@ -90,6 +90,7 @@ export default function ADAQuestionList({ questions, loading = false }: ADAQuest
 
   const [progressMap, setProgressMap] = useState<Record<string, StudyProgress>>({});
   const [sortMode, setSortMode] = useState<SortMode>('frequency');
+  const [statusFilter, setStatusFilter] = useState<'all' | StatusType>('all');
 
 
   // Fetch study progress for loaded questions
@@ -116,15 +117,26 @@ export default function ADAQuestionList({ questions, loading = false }: ADAQuest
     fetchProgress();
   }, [questions]);
 
-  // Filter by search query
+  // Filter by search query and status
   const filtered = questions.filter((q) => {
-    if (!searchQuery) return true;
-    const lower = searchQuery.toLowerCase();
-    return (
-      q.question_text.toLowerCase().includes(lower) ||
-      (q.topic_tags ?? []).some((t) => t.toLowerCase().includes(lower)) ||
-      (q.course_outcome ?? '').toLowerCase().includes(lower)
-    );
+    // text search
+    if (searchQuery) {
+      const lower = searchQuery.toLowerCase();
+      const matchesSearch =
+        q.question_text.toLowerCase().includes(lower) ||
+        (q.topic_tags ?? []).some((t) => t.toLowerCase().includes(lower)) ||
+        (q.course_outcome ?? '').toLowerCase().includes(lower);
+      if (!matchesSearch) return false;
+    }
+
+    // status filter
+    if (statusFilter !== 'all') {
+      const p = progressMap[q.id];
+      const status = (p?.status as StatusType) ?? 'not_started';
+      if (status !== statusFilter) return false;
+    }
+
+    return true;
   });
 
   // Sort
@@ -155,22 +167,35 @@ export default function ADAQuestionList({ questions, loading = false }: ADAQuest
           {selectedModuleNumber ? ` in Module ${selectedModuleNumber}` : ''}
         </p>
 
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-0.5 overflow-x-auto no-scrollbar w-full sm:w-auto mt-3 sm:mt-0">
-          <ArrowUpDown size={13} className="text-muted ml-2 mr-1 shrink-0" />
-          {(['frequency', 'recency', 'sequence'] as SortMode[]).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setSortMode(mode)}
-              className={clsx(
-                'px-3 py-1.5 text-xs rounded-md font-medium transition-colors capitalize',
-                sortMode === mode
-                  ? 'bg-accent text-white'
-                  : 'text-muted hover:text-foreground'
-              )}
-            >
-              {mode === 'recency' ? 'Exam Recency' : mode === 'sequence' ? 'Sequence' : 'Frequency'}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | StatusType)}
+            className="bg-card border border-border text-muted-foreground text-xs font-medium rounded-lg px-3 py-2 outline-none focus:border-accent"
+          >
+            <option value="all">All Statuses</option>
+            <option value="not_started">Not Started</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="confident">Confident</option>
+          </select>
+
+          <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-0.5 overflow-x-auto no-scrollbar scroll-fade-r w-full sm:w-auto">
+            <ArrowUpDown size={13} className="text-muted ml-2 mr-1 shrink-0" />
+            {(['frequency', 'recency', 'sequence'] as SortMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setSortMode(mode)}
+                className={clsx(
+                  'px-3 py-2 sm:py-1.5 text-xs rounded-md font-medium transition-colors capitalize',
+                  sortMode === mode
+                    ? 'bg-accent text-white'
+                    : 'text-muted hover:text-foreground'
+                )}
+              >
+                {mode === 'recency' ? 'Exam Recency' : mode === 'sequence' ? 'Sequence' : 'Frequency'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -351,7 +376,7 @@ function QuestionCard({
                     onClick={() => updateStatus(key)}
                     title={conf.label}
                     className={clsx(
-                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
+                      'flex items-center gap-1.5 px-2.5 py-2 sm:py-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
                       isActive ? conf.btnActive : `border-transparent ${conf.btnIdle}`
                     )}
                   >
@@ -407,7 +432,7 @@ function QuestionCard({
               href={q.youtube_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-medium"
+              className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-medium"
             >
               <Play size={15} />
               <span>
@@ -418,7 +443,7 @@ function QuestionCard({
               </span>
             </a>
           ) : (
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border text-muted-foreground text-xs cursor-not-allowed">
+            <span className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-card border border-border text-muted-foreground text-xs cursor-not-allowed">
               <Play size={15} />
               No video found
             </span>
@@ -427,7 +452,7 @@ function QuestionCard({
           {/* Discuss with AI */}
           <button
             onClick={handleDiscussWithAI}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors text-xs font-medium"
+            className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors text-xs font-medium"
           >
             <MessageSquare size={14} />
             Discuss with AI
@@ -437,7 +462,7 @@ function QuestionCard({
           <button
             onClick={() => setNotesOpen(!notesOpen)}
             className={clsx(
-              'inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors w-full sm:w-auto sm:ml-auto',
+              'inline-flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg border text-xs font-medium transition-colors w-full sm:w-auto sm:ml-auto',
               notesOpen
                 ? 'bg-accent/10 border-accent/20 text-accent'
                 : 'bg-card border-border text-muted hover:text-foreground hover:border-border-hover'

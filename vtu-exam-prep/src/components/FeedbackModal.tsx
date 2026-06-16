@@ -78,7 +78,7 @@ export default function FeedbackModal() {
       >
         <button
           onClick={() => setShowFeedbackModal(false)}
-          className="absolute top-4 right-4 p-1.5 rounded-full text-muted hover:text-foreground hover:bg-card transition-colors z-10"
+          className="absolute top-4 right-4 p-2.5 rounded-full text-muted hover:text-foreground hover:bg-card transition-colors z-10"
         >
           <X size={18} />
         </button>
@@ -153,7 +153,7 @@ export default function FeedbackModal() {
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting || !rating}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-accent-foreground font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     'Submitting...'

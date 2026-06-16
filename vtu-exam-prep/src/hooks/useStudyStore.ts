@@ -8,6 +8,7 @@ interface StudyLayoutState {
   rightSidebarOpen: boolean;
   toggleLeftSidebar: () => void;
   toggleRightSidebar: () => void;
+  setLeftSidebarOpen: (open: boolean) => void;
   setRightSidebarOpen: (open: boolean) => void;
 
   // Focus Mode
@@ -65,6 +66,7 @@ export const useStudyStore = create<StudyLayoutState>()(
         set((s) => ({ leftSidebarOpen: !s.leftSidebarOpen })),
       toggleRightSidebar: () =>
         set((s) => ({ rightSidebarOpen: !s.rightSidebarOpen })),
+      setLeftSidebarOpen: (open) => set({ leftSidebarOpen: open }),
       setRightSidebarOpen: (open) => set({ rightSidebarOpen: open }),
 
       focusMode: false,

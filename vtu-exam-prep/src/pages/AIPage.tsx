@@ -92,7 +92,7 @@ export default function AIPage() {
     >
       <div className="max-w-4xl mx-auto mb-8">
         {selectedModule ? (
-          <div className="bg-card border border-border rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5">
               <BrainCircuit size={120} />
             </div>
@@ -103,14 +103,14 @@ export default function AIPage() {
                   Module {selectedModule.module_number}
                 </span>
               </div>
-              <h2 className="text-2xl font-bold mb-3">{selectedModule.title}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-3">{selectedModule.title}</h2>
               <p className="text-muted-foreground leading-relaxed">
                 {selectedModule.description}
               </p>
             </div>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-2xl p-6 relative overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5">
               <BrainCircuit size={120} />
             </div>
@@ -121,7 +121,7 @@ export default function AIPage() {
                   Course Overview
                 </span>
               </div>
-              <h2 className="text-2xl font-bold mb-3">All Modules</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-3">All Modules</h2>
               <p className="text-muted-foreground leading-relaxed">
                 You are viewing questions from all modules. Select a specific module from the sidebar to focus your study session.
               </p>

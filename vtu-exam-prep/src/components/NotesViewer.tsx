@@ -100,12 +100,12 @@ export default function NotesViewer({ subjectId, modules }: NotesViewerProps) {
             ? `No notes uploaded for Module ${selectedModuleNumber} yet.`
             : 'No notes found for this subject.'}
         </p>
-        <div className="text-[11px] text-muted-foreground bg-card border border-border rounded-lg p-3 text-left w-full">
+        <div className="text-xs text-muted-foreground bg-card border border-border rounded-lg p-3 text-left w-full">
           <div className="flex items-center gap-1.5 mb-1.5 text-muted">
             <Terminal size={12} />
             <span className="font-medium">Upload notes via CLI:</span>
           </div>
-          <code className="text-accent text-[10px] leading-relaxed block">
+          <code className="text-accent text-xs leading-relaxed block">
             node scripts/upload-notes.mjs<br />
             --subject={subjectId}<br />
             --folder="path/to/notes"
@@ -162,7 +162,7 @@ function NoteSection({
     <div>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 w-full mb-2 group"
+        className="flex items-center gap-2 w-full mb-2 py-2 group"
       >
         {expanded ? (
           <ChevronDown size={14} className="text-muted" />
@@ -172,7 +172,7 @@ function NoteSection({
         <span className="text-xs font-semibold text-muted uppercase tracking-wider">
           {title}
         </span>
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           ({notes.length})
         </span>
         <div className="flex-1 border-t border-border/30" />
@@ -197,7 +197,7 @@ function NoteSection({
                 <p className="text-sm font-medium truncate group-hover:text-accent transition-colors">
                   {note.title}
                 </p>
-                <p className="text-[10px] text-muted uppercase">
+                <p className="text-xs text-muted uppercase">
                   {note.file_type}
                 </p>
               </div>
@@ -228,14 +228,14 @@ function NoteViewer({
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-border shrink-0">
         <div className="min-w-0 flex-1 mr-2">
           <p className="text-sm font-medium truncate">{note.title}</p>
-          <p className="text-[10px] text-muted uppercase">{note.file_type}</p>
+          <p className="text-xs text-muted uppercase">{note.file_type}</p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <a
             href={publicUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
+            className="p-2.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
             title="Open in new tab"
           >
             <ExternalLink size={14} />
@@ -245,14 +245,14 @@ function NoteViewer({
             download
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
+            className="p-2.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
             title="Download"
           >
             <Download size={14} />
           </a>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
+            className="p-2.5 rounded-md text-muted hover:text-foreground hover:bg-card transition-colors"
             title="Close"
           >
             <X size={14} />
@@ -263,11 +263,21 @@ function NoteViewer({
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {note.file_type === 'pdf' ? (
-          <iframe
-            src={publicUrl}
-            className="w-full h-full border-0"
-            title={note.title}
-          />
+          <div className="flex flex-col h-full">
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block sm:hidden px-3 py-2.5 text-center text-sm font-medium text-accent bg-accent/10 hover:bg-accent/20 transition-colors border-b border-border"
+            >
+              Open PDF in new tab ↗
+            </a>
+            <iframe
+              src={publicUrl}
+              className="w-full flex-1 border-0"
+              title={note.title}
+            />
+          </div>
         ) : (
           <ImageViewer
             src={publicUrl}
@@ -487,16 +497,16 @@ function ImageViewer({
       {/* Toolbar */}
       <div className="flex items-center justify-between px-2 py-1.5 border-b border-border shrink-0 bg-surface/50">
         <div className="flex items-center gap-1">
-          <button onClick={zoomOut} className="p-1 rounded text-muted hover:text-foreground hover:bg-card transition-colors" title="Zoom out">
+          <button onClick={zoomOut} className="p-2.5 rounded text-muted hover:text-foreground hover:bg-card transition-colors" title="Zoom out">
             <ZoomOut size={14} />
           </button>
-          <span className="text-[11px] text-muted w-10 text-center">
+          <span className="text-xs text-muted w-10 text-center">
             {Math.round(zoom * 100)}%
           </span>
-          <button onClick={zoomIn} className="p-1 rounded text-muted hover:text-foreground hover:bg-card transition-colors" title="Zoom in">
+          <button onClick={zoomIn} className="p-2.5 rounded text-muted hover:text-foreground hover:bg-card transition-colors" title="Zoom in">
             <ZoomIn size={14} />
           </button>
-          <button onClick={resetView} className="p-1 rounded text-muted hover:text-foreground hover:bg-card transition-colors ml-1" title="Reset view">
+          <button onClick={resetView} className="p-2.5 rounded text-muted hover:text-foreground hover:bg-card transition-colors ml-1" title="Reset view">
             <RotateCcw size={13} />
           </button>
         </div>
@@ -505,7 +515,7 @@ function ImageViewer({
           <button
             onClick={() => setAnnotating(!annotating)}
             className={clsx(
-              'flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors',
+              'flex items-center gap-1 px-3 py-2 rounded text-xs font-medium transition-colors',
               annotating
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                 : 'text-muted hover:text-foreground hover:bg-card'
@@ -520,7 +530,7 @@ function ImageViewer({
             <>
               <button
                 onClick={clearAnnotations}
-                className="p-1 rounded text-muted hover:text-foreground hover:bg-card transition-colors"
+                className="p-2.5 rounded text-muted hover:text-foreground hover:bg-card transition-colors"
                 title="Clear annotations"
               >
                 <X size={13} />
@@ -528,7 +538,7 @@ function ImageViewer({
               <button
                 onClick={saveAnnotation}
                 disabled={saving}
-                className="flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 rounded text-xs font-medium bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
                 title="Save annotated copy"
               >
                 <Save size={12} />
@@ -559,6 +569,22 @@ function ImageViewer({
         onMouseLeave={() => {
           handleMouseUp();
           handleAnnotationMouseUp();
+        }}
+        onTouchStart={(e) => {
+          if (annotating) return;
+          const touch = e.touches[0];
+          setIsPanning(true);
+          setPanStart({ x: touch.clientX - pan.x, y: touch.clientY - pan.y });
+        }}
+        onTouchMove={(e) => {
+          if (annotating) return;
+          if (!isPanning) return;
+          e.preventDefault();
+          const touch = e.touches[0];
+          setPan({ x: touch.clientX - panStart.x, y: touch.clientY - panStart.y });
+        }}
+        onTouchEnd={() => {
+          setIsPanning(false);
         }}
         style={annotating ? { cursor: 'crosshair' } : undefined}
       >

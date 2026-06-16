@@ -192,13 +192,13 @@ export default function AIAssistantPanel() {
               }}
               placeholder="Enter access key"
               className={clsx(
-                "w-full pl-4 pr-10 py-2.5 text-sm rounded-xl bg-card border text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors",
+                "w-full pl-4 pr-10 py-2.5 text-sm rounded-xl bg-card border text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors min-h-[44px]",
                 accessError ? "border-red-500/50 focus:border-red-500" : "border-border focus:border-accent"
               )}
             />
             <button
               onClick={handleUnlock}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-accent hover:bg-accent/10 transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg text-muted hover:text-accent hover:bg-accent/10 transition-colors"
             >
               <ArrowRight size={16} />
             </button>
@@ -217,13 +217,13 @@ export default function AIAssistantPanel() {
       {truncatedContext && (
         <div className="flex items-start gap-2 px-3 py-2.5 bg-accent-subtle/20 border-b border-accent/15 shrink-0">
           <Pin size={13} className="text-accent mt-0.5 shrink-0" />
-          <p className="text-[11px] text-accent/80 leading-snug flex-1 min-w-0">
+          <p className="text-xs text-accent/80 leading-snug flex-1 min-w-0">
             <span className="font-medium text-accent">Discussing:</span>{' '}
             {truncatedContext}
           </p>
           <button
             onClick={clearChatContext}
-            className="text-muted hover:text-foreground transition-colors shrink-0"
+            className="p-2 text-muted hover:text-foreground transition-colors shrink-0"
             title="Clear context"
           >
             <X size={13} />
@@ -240,7 +240,7 @@ export default function AIAssistantPanel() {
               Ask anything about{' '}
               {activeSubject === 'ada' ? 'ADA' : 'AI'}
             </p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               I'll help you understand concepts and prepare for your exam.
             </p>
           </div>
@@ -275,7 +275,7 @@ export default function AIAssistantPanel() {
               {lastFailedMessage && (
                 <button
                   onClick={handleRetry}
-                  className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-red-400 hover:text-red-300 transition-colors"
+                  className="inline-flex items-center gap-1 mt-1.5 py-1.5 px-3 text-xs text-red-400 hover:text-red-300 transition-colors"
                 >
                   <RotateCcw size={11} />
                   Retry
@@ -295,7 +295,7 @@ export default function AIAssistantPanel() {
             <button
               key={action.label}
               onClick={() => handleSend(action.label)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-card border border-border text-[11px] text-muted hover:text-accent hover:border-accent/30 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-card border border-border text-xs text-muted hover:text-accent hover:border-accent/30 transition-colors"
             >
               <action.icon size={12} />
               {action.label}
@@ -309,7 +309,7 @@ export default function AIAssistantPanel() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleNewChat}
-            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-card border border-border transition-colors"
+            className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-card border border-border transition-colors"
             title="New chat"
           >
             <Plus size={15} />
@@ -330,7 +330,7 @@ export default function AIAssistantPanel() {
             onClick={() => handleSend()}
             disabled={!inputValue.trim() || isLoading}
             className={clsx(
-              'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all',
+              'shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all',
               inputValue.trim() && !isLoading
                 ? 'bg-accent text-white hover:bg-accent-hover'
                 : 'bg-card border border-border text-muted-foreground cursor-not-allowed'

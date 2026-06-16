@@ -130,7 +130,7 @@ export default function Home() {
       {/* Header & Countdown */}
       <div className="w-full text-center space-y-6">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-accent to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-accent to-purple-400 bg-clip-text text-transparent">
             VTU Exam Prep
           </h1>
           <p className="text-muted text-lg">4th Semester Finals</p>
@@ -149,7 +149,7 @@ export default function Home() {
                   type="date"
                   value={adaDateStr}
                   onChange={(e) => setAdaDateStr(e.target.value)}
-                  className="bg-transparent text-sm text-muted-foreground outline-none cursor-pointer hover:text-foreground transition-colors"
+                  className="bg-transparent text-sm text-muted-foreground outline-none cursor-pointer hover:text-foreground transition-colors min-h-[44px]"
                 />
               </div>
               {adaDays !== null && (
@@ -186,7 +186,7 @@ export default function Home() {
                   type="date"
                   value={aiDateStr}
                   onChange={(e) => setAiDateStr(e.target.value)}
-                  className="bg-transparent text-sm text-muted-foreground outline-none cursor-pointer hover:text-foreground transition-colors"
+                  className="bg-transparent text-sm text-muted-foreground outline-none cursor-pointer hover:text-foreground transition-colors min-h-[44px]"
                 />
               </div>
               {aiDays !== null && (
@@ -274,10 +274,10 @@ export default function Home() {
                       {q.question_text}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 mt-auto">
-                      <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                         {q.frequency}× Frequency
                       </span>
-                      <span className="text-[10px] text-muted flex items-center gap-1 px-2 py-1 bg-card rounded-full border border-border">
+                      <span className="text-[11px] text-muted flex items-center gap-1 px-2 py-1 bg-card rounded-full border border-border">
                         Module {q.module_id ? 'X' : '?'}
                         <ChevronRight size={10} />
                       </span>
@@ -323,7 +323,7 @@ export default function Home() {
                     <span className="text-xs font-medium group-hover:text-purple-400 transition-colors">
                       {theme}
                     </span>
-                    <span className="text-[10px] font-bold px-1.5 rounded-full bg-purple-500/15 text-purple-400">
+                    <span className="text-[11px] font-bold px-1.5 rounded-full bg-purple-500/15 text-purple-400">
                       {count}
                     </span>
                   </Link>
@@ -340,13 +340,13 @@ export default function Home() {
           Developed by Thanmay D R
         </p>
         <div className="flex items-center justify-center gap-4 mt-2">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
               thanmaydambekodi@gmail.com
             </a>
           </p>
           <div className="w-px h-3 bg-border" />
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
               <GithubIcon size={12} /> thanmaydr0
             </a>
@@ -356,7 +356,7 @@ export default function Home() {
       {/* Floating Feedback Button */}
       <button
         onClick={() => setShowFeedbackModal(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center justify-center p-3 sm:p-4 bg-accent text-accent-foreground rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all group"
+        className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-40 flex items-center justify-center p-3 sm:p-4 bg-accent text-accent-foreground rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all group min-w-[48px] min-h-[48px]"
         title="Give Feedback"
       >
         <MessageSquareHeart size={24} className="group-hover:animate-pulse" />
@@ -457,7 +457,7 @@ function SubjectCard({
                 style={{ width: `${reviewingPct}%` }}
               />
             </div>
-            <p className="text-[10px] text-right text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+            <p className="text-[11px] text-right text-muted-foreground uppercase tracking-wider font-semibold mt-1">
               {stats.total} total questions
             </p>
           </>
