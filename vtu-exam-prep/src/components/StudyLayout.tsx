@@ -15,6 +15,7 @@ import {
   Maximize,
   Minimize,
   Keyboard,
+  Download,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
@@ -327,63 +328,85 @@ export default function StudyLayout({
               </button>
 
               {/* Module List */}
-              <nav className="flex-1 overflow-y-auto py-1">
-                {modules.map((mod) => {
-                  const isSelected = selectedModuleNumber === mod.module_number;
-                  const isExpanded = expandedModules.has(mod.module_number);
+              <nav className="flex-1 overflow-y-auto py-1 flex flex-col">
+                <div>
+                  {modules.map((mod) => {
+                    const isSelected = selectedModuleNumber === mod.module_number;
+                    const isExpanded = expandedModules.has(mod.module_number);
 
-                  return (
-                    <div key={mod.id}>
-                      <button
-                        onClick={() => {
-                          setSelectedModule(mod.module_number);
-                          toggleModuleExpanded(mod.module_number);
-                        }}
-                        className={clsx(
-                          'w-full flex items-start gap-2 px-4 py-3 text-left transition-colors',
-                          isSelected
-                            ? 'bg-accent-subtle/30 text-accent'
-                            : 'text-foreground/80 hover:bg-card hover:text-foreground'
-                        )}
-                      >
-                        <span className="mt-0.5">
-                          {isExpanded ? (
-                            <ChevronDown size={14} />
-                          ) : (
-                            <ChevronRight size={14} />
+                    return (
+                      <div key={mod.id}>
+                        <button
+                          onClick={() => {
+                            setSelectedModule(mod.module_number);
+                            toggleModuleExpanded(mod.module_number);
+                          }}
+                          className={clsx(
+                            'w-full flex items-start gap-2 px-4 py-3 text-left transition-colors',
+                            isSelected
+                              ? 'bg-accent-subtle/30 text-accent'
+                              : 'text-foreground/80 hover:bg-card hover:text-foreground'
                           )}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium truncate">
-                              Module {mod.module_number}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted truncate mt-0.5">
-                            {mod.title}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-card border border-border text-muted">
-                              {mod.questionCount} Qs
-                            </span>
-                            {subjectId === 'ada' && mod.avgFrequency !== null && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-accent-subtle/40 text-accent border border-accent/20">
-                                freq {mod.avgFrequency.toFixed(1)}
-                              </span>
+                        >
+                          <span className="mt-0.5">
+                            {isExpanded ? (
+                              <ChevronDown size={14} />
+                            ) : (
+                              <ChevronRight size={14} />
                             )}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium truncate">
+                                Module {mod.module_number}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted truncate mt-0.5">
+                              {mod.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-card border border-border text-muted">
+                                {mod.questionCount} Qs
+                              </span>
+                              {subjectId === 'ada' && mod.avgFrequency !== null && (
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-accent-subtle/40 text-accent border border-accent/20">
+                                  freq {mod.avgFrequency.toFixed(1)}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </button>
+                        </button>
 
-                      {/* Expanded description */}
-                      {isExpanded && (
-                        <div className="px-10 pb-3 text-xs text-muted leading-relaxed">
-                          {mod.description}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        {/* Expanded description */}
+                        {isExpanded && (
+                          <div className="px-10 pb-3 text-xs text-muted leading-relaxed">
+                            {mod.description}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Previous Papers Section */}
+                <div className="mt-4 px-4 pb-2">
+                  <h3 className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">
+                    Previous Papers
+                  </h3>
+                  <div className="space-y-1">
+                    {['july2024.pdf', 'jan2025.pdf', 'july2025.pdf', 'jan2026.pdf'].map((file) => (
+                      <a
+                        key={file}
+                        href={`/papers/${subjectId}/${file}`}
+                        download
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-foreground/80 hover:bg-accent-subtle/20 hover:text-accent rounded-lg transition-colors group"
+                      >
+                        <Download size={14} className="text-muted group-hover:text-accent transition-colors shrink-0" />
+                        <span className="truncate capitalize">{file.replace('.pdf', '')}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </nav>
 
               {/* Developer Credit Footer in Sidebar */}
