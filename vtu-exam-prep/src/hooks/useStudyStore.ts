@@ -46,6 +46,10 @@ interface StudyLayoutState {
   ) => void;
   clearChatContext: () => void;
   startNewChat: () => void;
+
+  // AI Access Restriction
+  hasAiAccess: boolean;
+  setHasAiAccess: (access: boolean) => void;
 }
 
 export const useStudyStore = create<StudyLayoutState>()(
@@ -107,6 +111,9 @@ export const useStudyStore = create<StudyLayoutState>()(
           chatQuestionId: null,
           chatQuestionContext: null,
         }),
+
+      hasAiAccess: false,
+      setHasAiAccess: (access) => set({ hasAiAccess: access }),
     }),
     {
       name: 'vtu-study-layout',
@@ -117,6 +124,7 @@ export const useStudyStore = create<StudyLayoutState>()(
         rightTab: state.rightTab,
         activeSubject: state.activeSubject,
         chatSessionId: state.chatSessionId,
+        hasAiAccess: state.hasAiAccess,
       }),
     }
   )
