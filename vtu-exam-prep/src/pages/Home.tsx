@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Circle,
   CheckCircle2,
+  Github,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
@@ -333,11 +334,19 @@ export default function Home() {
         <p className="text-xs text-muted-foreground font-medium tracking-wide">
           Developed by Thanmay D R
         </p>
-        <p className="text-[11px] text-muted-foreground mt-1">
-          <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
-            thanmaydambekodi@gmail.com
-          </a>
-        </p>
+        <div className="flex items-center justify-center gap-4 mt-2">
+          <p className="text-[11px] text-muted-foreground">
+            <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
+              thanmaydambekodi@gmail.com
+            </a>
+          </p>
+          <div className="w-px h-3 bg-border" />
+          <p className="text-[11px] text-muted-foreground">
+            <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
+              <Github size={12} /> thanmaydr0
+            </a>
+          </p>
+        </div>
       </footer>
     </div>
   );

@@ -15,6 +15,7 @@ import {
   Maximize,
   Minimize,
   Keyboard,
+  Github,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
@@ -388,14 +389,21 @@ export default function StudyLayout({
 
               {/* Developer Credit Footer in Sidebar */}
               <div className="p-4 border-t border-border mt-auto opacity-50 hover:opacity-100 transition-opacity text-center shrink-0">
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
                   Developed by Thanmay D R
                 </p>
-                <p className="text-[10px] text-muted-foreground/70">
-                  <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
-                    thanmaydambekodi@gmail.com
-                  </a>
-                </p>
+                <div className="flex flex-col items-center gap-1.5">
+                  <p className="text-[10px] text-muted-foreground/70">
+                    <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
+                      thanmaydambekodi@gmail.com
+                    </a>
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/70">
+                    <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
+                      <Github size={10} /> thanmaydr0
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           )}
