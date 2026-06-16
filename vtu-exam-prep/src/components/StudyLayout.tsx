@@ -23,6 +23,7 @@ import { useStudyStore } from '../hooks/useStudyStore';
 import AIAssistantPanel from './AIAssistantPanel';
 import NotesViewer from './NotesViewer';
 import ShortcutsModal from './ShortcutsModal';
+import FeedbackModal from './FeedbackModal';
 import type { ModuleWithStats, SubjectId } from '../types';
 
 interface StudyLayoutProps {
@@ -55,6 +56,7 @@ export default function StudyLayout({
     toggleFocusMode,
     setShowShortcutsModal,
     setRightSidebarOpen,
+    setShowFeedbackModal,
   } = useStudyStore();
 
   const [modules, setModules] = useState<ModuleWithStats[]>([]);
@@ -217,6 +219,7 @@ export default function StudyLayout({
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background relative">
       <ShortcutsModal />
+      <FeedbackModal />
 
       {/* ── Sticky Header ── */}
       {!focusMode && (
@@ -410,21 +413,30 @@ export default function StudyLayout({
               </nav>
 
               {/* Developer Credit Footer in Sidebar */}
-              <div className="p-4 border-t border-border mt-auto opacity-50 hover:opacity-100 transition-opacity text-center shrink-0">
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
-                  Developed by Thanmay D R
-                </p>
-                <div className="flex flex-col items-center gap-1.5">
-                  <p className="text-[10px] text-muted-foreground/70">
-                    <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
-                      thanmaydambekodi@gmail.com
-                    </a>
+              <div className="p-4 border-t border-border mt-auto shrink-0 flex flex-col items-center">
+                <button
+                  onClick={() => setShowFeedbackModal(true)}
+                  className="w-full py-2 mb-4 text-xs font-semibold bg-accent/10 text-accent hover:bg-accent/20 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  Give Feedback
+                </button>
+
+                <div className="opacity-50 hover:opacity-100 transition-opacity text-center w-full">
+                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
+                    Developed by Thanmay D R
                   </p>
-                  <p className="text-[10px] text-muted-foreground/70">
-                    <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
-                      <GithubIcon size={10} /> thanmaydr0
-                    </a>
-                  </p>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <p className="text-[10px] text-muted-foreground/70">
+                      <a href="mailto:thanmaydambekodi@gmail.com" className="hover:text-accent transition-colors">
+                        thanmaydambekodi@gmail.com
+                      </a>
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70">
+                      <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
+                        <GithubIcon size={10} /> thanmaydr0
+                      </a>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

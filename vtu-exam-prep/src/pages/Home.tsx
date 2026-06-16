@@ -11,10 +11,13 @@ import {
   ChevronRight,
   Circle,
   CheckCircle2,
+  MessageSquareHeart,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
 import type { Question, StudyProgress } from '../types';
+import { useStudyStore } from '../hooks/useStudyStore';
+import FeedbackModal from '../components/FeedbackModal';
 
 interface SubjectStats {
   total: number;
@@ -24,6 +27,7 @@ interface SubjectStats {
 }
 
 export default function Home() {
+  const { setShowFeedbackModal } = useStudyStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [progress, setProgress] = useState<Record<string, StudyProgress>>({});
   const [loading, setLoading] = useState(true);
@@ -120,7 +124,9 @@ export default function Home() {
   const aiDays = getDaysUntil(aiDateStr);
 
   return (
-    <div className="flex flex-col items-center min-h-screen py-10 px-4 max-w-4xl mx-auto space-y-12">
+    <div className="flex flex-col items-center min-h-screen py-10 px-4 max-w-4xl mx-auto space-y-12 relative">
+      <FeedbackModal />
+      
       {/* Header & Countdown */}
       <div className="w-full text-center space-y-6">
         <div>
@@ -347,6 +353,14 @@ export default function Home() {
           </p>
         </div>
       </footer>
+      {/* Floating Feedback Button */}
+      <button
+        onClick={() => setShowFeedbackModal(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center justify-center p-3 sm:p-4 bg-accent text-accent-foreground rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all group"
+        title="Give Feedback"
+      >
+        <MessageSquareHeart size={24} className="group-hover:animate-pulse" />
+      </button>
     </div>
   );
 }

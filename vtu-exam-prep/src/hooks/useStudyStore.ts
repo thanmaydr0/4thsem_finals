@@ -19,6 +19,10 @@ interface StudyLayoutState {
   showShortcutsModal: boolean;
   setShowShortcutsModal: (show: boolean) => void;
 
+  // Feedback Modal
+  showFeedbackModal: boolean;
+  setShowFeedbackModal: (show: boolean) => void;
+
   // Module selection (persisted per subject)
   selectedModuleNumber: number | null; // null = "All Modules"
   setSelectedModule: (moduleNumber: number | null) => void;
@@ -69,6 +73,9 @@ export const useStudyStore = create<StudyLayoutState>()(
 
       showShortcutsModal: false,
       setShowShortcutsModal: (show) => set({ showShortcutsModal: show }),
+
+      showFeedbackModal: false,
+      setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
 
       selectedModuleNumber: null,
       setSelectedModule: (moduleNumber) =>
