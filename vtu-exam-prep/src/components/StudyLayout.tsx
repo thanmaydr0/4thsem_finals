@@ -385,6 +385,18 @@ export default function StudyLayout({
                   );
                 })}
               </nav>
+
+              {/* Developer Credit Footer in Sidebar */}
+              <div className="p-4 border-t border-border mt-auto opacity-50 hover:opacity-100 transition-opacity text-center shrink-0">
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">
+                  Developed by Thanmay D R
+                </p>
+                <p className="text-[10px] text-muted-foreground/70">
+                  <a href="mailto:thanmay.cseaiml24@cmrit.ac.in" className="hover:text-accent transition-colors">
+                    thanmay.cseaiml24@cmrit.ac.in
+                  </a>
+                </p>
+              </div>
             </div>
           )}
           </aside>

@@ -327,6 +327,18 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="w-full pt-12 pb-6 text-center opacity-60 hover:opacity-100 transition-opacity">
+        <p className="text-xs text-muted-foreground font-medium tracking-wide">
+          Developed by Thanmay D R
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-1">
+          <a href="mailto:thanmay.cseaiml24@cmrit.ac.in" className="hover:text-accent transition-colors">
+            thanmay.cseaiml24@cmrit.ac.in
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
