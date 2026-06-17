@@ -12,6 +12,6 @@ alter table public.feedback enable row level security;
 create policy "Allow anonymous inserts on feedback"
   on public.feedback
   for insert
-  with check (true);
+  with check (true); 
 
 -- No select policy because only admins (via dashboard) should read feedback.
