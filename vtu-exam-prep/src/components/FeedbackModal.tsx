@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, Heart, MessageSquareHeart } from 'lucide-react';
+import { Send, Heart, MessageSquareHeart } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
 import { useStudyStore } from '../hooks/useStudyStore';
@@ -31,19 +31,7 @@ export default function FeedbackModal() {
     }
   }, [showFeedbackModal]);
 
-  // Click outside to close
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setShowFeedbackModal(false);
-      }
-    };
-
-    if (showFeedbackModal) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showFeedbackModal, setShowFeedbackModal]);
+  // Modal is now compulsory: removed click-outside-to-close logic
 
   if (!showFeedbackModal) return null;
 
@@ -76,12 +64,7 @@ export default function FeedbackModal() {
         ref={modalRef}
         className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-200"
       >
-        <button
-          onClick={() => setShowFeedbackModal(false)}
-          className="absolute top-4 right-4 p-2.5 rounded-full text-muted hover:text-foreground hover:bg-card transition-colors z-10"
-        >
-          <X size={18} />
-        </button>
+
 
         <div className="p-6">
           {submitted ? (
@@ -102,9 +85,19 @@ export default function FeedbackModal() {
                 <div className="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageSquareHeart size={24} />
                 </div>
-                <h2 className="text-xl font-bold">How is your experience?</h2>
+                
+                <div className="mb-6 bg-accent/5 border border-accent/20 rounded-xl p-4 text-left shadow-sm">
+                  <p className="text-[15px] text-foreground font-semibold flex items-center gap-2 mb-1.5">
+                    <span role="img" aria-label="rocket">🚀</span> Good luck on your ADA exam!
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    We hope this tool helps you ace it. Note that the <strong>DBMS section</strong> will be added soon after the AI exam is over!
+                  </p>
+                </div>
+
+                <h2 className="text-lg font-bold">How is your experience?</h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Let us know what you think of the app.
+                  We'd love a quick rating before you go study.
                 </p>
               </div>
 
