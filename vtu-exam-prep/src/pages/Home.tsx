@@ -1,22 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  BookOpen,
   BrainCircuit,
   Calendar,
   Clock,
   Target,
   Sparkles,
   ArrowRight,
-  ChevronRight,
   Circle,
   CheckCircle2,
+  Lock,
+  Ghost,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
+import { useAnalytics } from '../hooks/useAnalytics';
 import type { Question, StudyProgress } from '../types';
 
 import FeedbackModal from '../components/FeedbackModal';
+import SecretChatModal from '../components/SecretChatModal';
 
 interface SubjectStats {
   total: number;
@@ -26,21 +28,22 @@ interface SubjectStats {
 }
 
 export default function Home() {
+  useAnalytics();
   // Hooks
   const [questions, setQuestions] = useState<Question[]>([]);
   const [progress, setProgress] = useState<Record<string, StudyProgress>>({});
   const [loading, setLoading] = useState(true);
+  const [isSecretChatOpen, setIsSecretChatOpen] = useState(false);
 
   // Exam dates state
-  const [adaDateStr, setAdaDateStr] = useState(() => localStorage.getItem('vtu_ada_exam_date') || '');
-  const [aiDateStr, setAiDateStr] = useState(() => localStorage.getItem('vtu_ai_exam_date') || '');
+  const [aiDateStr, setAiDateStr] = useState<string>(
+    localStorage.getItem('vtu_ai_date') || ''
+  );
 
   useEffect(() => {
-    localStorage.setItem('vtu_ada_exam_date', adaDateStr);
-  }, [adaDateStr]);
-
-  useEffect(() => {
-    localStorage.setItem('vtu_ai_exam_date', aiDateStr);
+    if (aiDateStr) {
+      localStorage.setItem('vtu_ai_date', aiDateStr);
+    }
   }, [aiDateStr]);
 
   useEffect(() => {
@@ -86,16 +89,6 @@ export default function Home() {
     return s;
   }, [questions, progress]);
 
-  // ADA Top 5 Not Started
-  const adaTopPriority = useMemo(() => {
-    return questions
-      .filter((q) => q.subject_id === 'ada')
-      .filter((q) => (progress[q.id]?.status ?? 'not_started') === 'not_started')
-      .filter((q) => q.frequency != null)
-      .sort((a, b) => (b.frequency ?? 0) - (a.frequency ?? 0))
-      .slice(0, 5);
-  }, [questions, progress]);
-
   // AI Top Themes
   const aiTopThemes = useMemo(() => {
     const tagCounts = new Map<string, number>();
@@ -119,11 +112,24 @@ export default function Home() {
     return diffDays;
   }
 
-  const adaDays = getDaysUntil(adaDateStr);
   const aiDays = getDaysUntil(aiDateStr);
+
+  function handleLockSession() {
+    localStorage.removeItem('vtu_auth_session');
+    window.dispatchEvent(new Event('vtu-auth-changed'));
+  }
 
   return (
     <div className="flex flex-col items-center min-h-screen py-10 px-4 max-w-4xl mx-auto space-y-12 relative">
+      <button
+        onClick={handleLockSession}
+        className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground hover:bg-accent/10 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+        title="Lock Session"
+      >
+        <Lock size={16} />
+        <span className="hidden sm:inline">Lock Session</span>
+      </button>
+
       <FeedbackModal />
       
       {/* Header & Countdown */}
@@ -137,42 +143,6 @@ export default function Home() {
 
         {/* Countdown Widget */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 p-4 rounded-2xl bg-card border border-border w-full max-w-md mx-auto sm:max-w-none sm:w-auto sm:inline-flex">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-              <Calendar className="text-accent" size={18} />
-            </div>
-            <div className="text-left">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">ADA Exam:</span>
-                <input
-                  type="date"
-                  value={adaDateStr}
-                  onChange={(e) => setAdaDateStr(e.target.value)}
-                  className="bg-transparent text-sm text-muted-foreground outline-none cursor-pointer hover:text-foreground transition-colors min-h-[44px]"
-                />
-              </div>
-              {adaDays !== null && (
-                <p
-                  className={clsx(
-                    'text-xs font-medium',
-                    adaDays < 0
-                      ? 'text-muted-foreground'
-                      : adaDays <= 3
-                      ? 'text-red-400'
-                      : 'text-emerald-400'
-                  )}
-                >
-                  {adaDays < 0
-                    ? 'Exam passed'
-                    : adaDays === 0
-                    ? 'Exam today!'
-                    : `${adaDays} days left`}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="w-full h-px sm:w-px sm:h-10 bg-border" />
 
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
@@ -212,27 +182,19 @@ export default function Home() {
       </div>
 
       {/* Main Subjects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <SubjectCard
-          title="Analysis & Design of Algorithms"
-          code="BCS401"
-          shortName="ADA"
-          icon={BookOpen}
-          color="accent"
-          link="/ada"
-          stats={stats.ada}
-          loading={loading}
-        />
-        <SubjectCard
-          title="Artificial Intelligence"
-          code="BAD402"
-          shortName="AI"
-          icon={BrainCircuit}
-          color="purple"
-          link="/ai"
-          stats={stats.ai}
-          loading={loading}
-        />
+      <div className="flex justify-center w-full">
+        <div className="w-full max-w-sm">
+          <SubjectCard
+            title="Artificial Intelligence"
+            code="BAD402"
+            shortName="AI"
+            icon={BrainCircuit}
+            color="purple"
+            link="/ai"
+            stats={stats.ai}
+            loading={loading}
+          />
+        </div>
       </div>
 
       {/* Smart Study Plan */}
@@ -242,56 +204,8 @@ export default function Home() {
           <h2 className="text-xl font-semibold">Smart Study Plan</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          {/* ADA Top Priorities */}
-          <div>
-            <div className="flex items-center gap-2 mb-4 text-accent">
-              <Target size={18} />
-              <h3 className="font-semibold text-sm tracking-wide uppercase">
-                ADA Guaranteed Patterns
-              </h3>
-            </div>
-            <p className="text-xs text-muted mb-4">
-              Focus on these first — they repeat almost every cycle and you
-              haven't started them yet.
-            </p>
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-14 bg-accent-subtle/10 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : adaTopPriority.length > 0 ? (
-              <div className="space-y-3">
-                {adaTopPriority.map((q) => (
-                  <Link
-                    key={q.id}
-                    to="/ada"
-                    className="block p-3 rounded-xl bg-background border border-border hover:border-accent/40 transition-colors group"
-                  >
-                    <p className="text-sm font-medium line-clamp-2 mb-3 group-hover:text-accent transition-colors">
-                      {q.question_text}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 mt-auto">
-                      <span className="text-[11px] font-medium px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                        {q.frequency}× Frequency
-                      </span>
-                      <span className="text-[11px] text-muted flex items-center gap-1 px-2 py-1 bg-card rounded-full border border-border">
-                        Module {q.module_id ? 'X' : '?'}
-                        <ChevronRight size={10} />
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-background border border-border text-center">
-                <CheckCircle2 size={24} className="text-emerald-400 mx-auto mb-2" />
-                <p className="text-sm font-medium">You're caught up!</p>
-                <p className="text-xs text-muted">No unstarted high-frequency ADA questions.</p>
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 gap-8 md:gap-12">
+
 
           {/* AI Recurring Themes */}
           <div>
@@ -353,6 +267,19 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Floating Secret Chat Button */}
+      <button
+        onClick={() => setIsSecretChatOpen(true)}
+        className="fixed bottom-6 right-6 p-4 bg-surface border border-border shadow-2xl rounded-full text-accent hover:bg-accent hover:text-accent-foreground hover:scale-110 transition-all z-40 group"
+        title="Open Secret Chat"
+      >
+        <Ghost size={24} className="group-hover:animate-pulse" />
+      </button>
+
+      <SecretChatModal 
+        isOpen={isSecretChatOpen} 
+        onClose={() => setIsSecretChatOpen(false)} 
+      />
     </div>
   );
 }

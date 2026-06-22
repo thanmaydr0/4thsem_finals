@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { sessionId, message, subjectId, questionContext } = await req.json();
+    const { sessionId, message, subjectId, questionContext, studentName } = await req.json();
 
     if (!message || !subjectId) {
       return new Response(
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     if (!activeSessionId) {
       const { data: newSession, error: sessionError } = await supabase
         .from("chat_sessions")
-        .insert({ subject_id: subjectId })
+        .insert({ subject_id: subjectId, student_name: studentName })
         .select("id")
         .single();
 

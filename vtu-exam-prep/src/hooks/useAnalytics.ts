@@ -12,11 +12,20 @@ export function useAnalytics() {
           localStorage.setItem('vtu_anon_id', anonId);
         }
 
+        // Get student name if available
+        let studentName = null;
+        try {
+          const profileStr = localStorage.getItem('vtu_local_profile');
+          if (profileStr) {
+            studentName = JSON.parse(profileStr).name;
+          }
+        } catch (e) {}
+
         // Upsert the visit
         await supabase
           .from('site_visits')
           .upsert(
-            { id: anonId, last_active_at: new Date().toISOString() },
+            { id: anonId, last_active_at: new Date().toISOString(), student_name: studentName },
             { onConflict: 'id' }
           );
       } catch (err) {

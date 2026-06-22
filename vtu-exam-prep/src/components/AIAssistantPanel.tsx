@@ -9,8 +9,6 @@ import {
   BookOpen,
   HelpCircle,
   AlertTriangle,
-  Lock,
-  ArrowRight,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
@@ -32,8 +30,6 @@ export default function AIAssistantPanel() {
     setChatSession,
     clearChatContext,
     startNewChat,
-    hasAiAccess,
-    setHasAiAccess,
   } = useStudyStore();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -41,10 +37,6 @@ export default function AIAssistantPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
-
-  // Access key state
-  const [accessKeyInput, setAccessKeyInput] = useState('');
-  const [accessError, setAccessError] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -99,11 +91,20 @@ export default function AIAssistantPanel() {
     setIsLoading(true);
 
     try {
+      let studentName = null;
+      try {
+        const profileStr = localStorage.getItem('vtu_local_profile');
+        if (profileStr) {
+          studentName = JSON.parse(profileStr).name;
+        }
+      } catch (e) {}
+
       const result = await sendChatMessage({
         sessionId: chatSessionId,
         message: messageText,
         subjectId: activeSubject,
         questionContext: chatQuestionContext,
+        studentName,
       });
 
       // Update session ID if newly created
@@ -152,64 +153,11 @@ export default function AIAssistantPanel() {
     setLastFailedMessage(null);
   }
 
-  function handleUnlock() {
-    if (accessKeyInput.trim() === 'jellyfish-salamon') {
-      setHasAiAccess(true);
-      setAccessError(false);
-    } else {
-      setAccessError(true);
-    }
-  }
-
   const truncatedContext = chatQuestionContext
     ? chatQuestionContext.length > 60
       ? chatQuestionContext.slice(0, 60) + '…'
       : chatQuestionContext
     : null;
-
-  if (!hasAiAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-          <Lock className="text-accent" size={24} />
-        </div>
-        <h3 className="text-lg font-semibold mb-2">AI Assistant Locked</h3>
-        <p className="text-sm text-muted mb-6">
-          Please enter the access key to use the AI chat feature.
-        </p>
-        
-        <div className="w-full max-w-xs space-y-3">
-          <div className="relative">
-            <input
-              type="password"
-              value={accessKeyInput}
-              onChange={(e) => {
-                setAccessKeyInput(e.target.value);
-                setAccessError(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleUnlock();
-              }}
-              placeholder="Enter access key"
-              className={clsx(
-                "w-full pl-4 pr-10 py-2.5 text-sm rounded-xl bg-card border text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors min-h-[44px]",
-                accessError ? "border-red-500/50 focus:border-red-500" : "border-border focus:border-accent"
-              )}
-            />
-            <button
-              onClick={handleUnlock}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-            >
-              <ArrowRight size={16} />
-            </button>
-          </div>
-          {accessError && (
-            <p className="text-xs text-red-400 text-left pl-1">Invalid access key.</p>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full">

@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ADAPage from './pages/ADAPage';
+
 import AIPage from './pages/AIPage';
 import Home from './pages/Home';
 import StatsPage from './pages/StatsPage';
+import AuthGate from './components/AuthGate';
+import ADAPopup from './components/ADAPopup';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useStudyStore } from './hooks/useStudyStore';
 
@@ -26,12 +28,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/ada" element={<ADAPage />} />
-        <Route path="/ai" element={<AIPage />} />
-        <Route path="/stats" element={<StatsPage />} />
-      </Routes>
+      <AuthGate>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/ai" element={<AIPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+        </Routes>
+        <ADAPopup />
+      </AuthGate>
     </BrowserRouter>
   );
 }

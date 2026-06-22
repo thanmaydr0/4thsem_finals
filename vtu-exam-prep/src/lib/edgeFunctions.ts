@@ -5,6 +5,7 @@ interface ChatRequest {
   message: string;
   subjectId: string;
   questionContext?: string | null;
+  studentName?: string | null;
 }
 
 interface ChatResponse {
@@ -25,6 +26,7 @@ export async function sendChatMessage(
       message: req.message,
       subjectId: req.subjectId,
       questionContext: req.questionContext,
+      studentName: req.studentName,
     },
   });
 

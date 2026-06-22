@@ -88,10 +88,10 @@ export default function FeedbackModal() {
                 
                 <div className="mb-6 bg-accent/5 border border-accent/20 rounded-xl p-4 text-left shadow-sm">
                   <p className="text-[15px] text-foreground font-semibold flex items-center gap-2 mb-1.5">
-                    <span role="img" aria-label="rocket">🚀</span> Good luck on your ADA exam!
+                    <span role="img" aria-label="rocket">🚀</span> Good luck on your AI exam!
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    We hope this tool helps you ace it. Note that the <strong>DBMS section</strong> will be added soon after the AI exam is over!
+                    We hope this tool helps you ace it. Note that the <strong>DBMS section</strong> will be added soon!
                   </p>
                 </div>
 
