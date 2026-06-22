@@ -4,9 +4,11 @@ import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
 import { getStudentName } from '../lib/auth';
 import { useStudyStore } from '../hooks/useStudyStore';
+import { useLocation } from 'react-router-dom';
 
 export default function SiteRatingPopup() {
   const { showSiteRating, setShowSiteRating } = useStudyStore();
+  const location = useLocation();
   
   const [isAutoVisible, setIsAutoVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,14 +22,14 @@ export default function SiteRatingPopup() {
 
   useEffect(() => {
     // Check if they have already completed the site rating
-    if (!hasCompleted && !showSiteRating) {
+    if (!hasCompleted && !showSiteRating && location.pathname === '/') {
       // Delay slightly for smooth entry
       const timer = setTimeout(() => {
         setIsAutoVisible(true);
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [hasCompleted, showSiteRating]);
+  }, [hasCompleted, showSiteRating, location.pathname]);
 
   // Combined visibility check
   const isVisible = isAutoVisible || showSiteRating;

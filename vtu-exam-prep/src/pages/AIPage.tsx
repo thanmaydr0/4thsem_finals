@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { AlertCircle, BrainCircuit } from 'lucide-react';
 import StudyLayout from '../components/StudyLayout';
 import AIQuestionList from '../components/ai/AIQuestionList';
-import SiteRatingPopup from '../components/SiteRatingPopup';
 import { supabase } from '../lib/supabase';
 import { useStudyStore } from '../hooks/useStudyStore';
 import type { Question } from '../types';
@@ -132,7 +131,6 @@ export default function AIPage() {
       </div>
 
       <AIQuestionList questions={filteredQuestions} loading={loading} />
-      <SiteRatingPopup />
     </StudyLayout>
   );
 }

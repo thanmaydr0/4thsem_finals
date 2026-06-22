@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import StatsPage from './pages/StatsPage';
 import AuthGate from './components/AuthGate';
 import ADAPopup from './components/ADAPopup';
+import SiteRatingPopup from './components/SiteRatingPopup';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useStudyStore } from './hooks/useStudyStore';
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/stats" element={<StatsPage />} />
         </Routes>
         <ADAPopup />
+        <SiteRatingPopup />
       </AuthGate>
     </BrowserRouter>
   );
