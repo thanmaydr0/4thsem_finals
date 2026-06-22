@@ -24,6 +24,10 @@ interface StudyLayoutState {
   showFeedbackModal: boolean;
   setShowFeedbackModal: (show: boolean) => void;
 
+  // Site Rating Popup
+  showSiteRating: boolean;
+  setShowSiteRating: (show: boolean) => void;
+
   // Module selection (persisted per subject)
   selectedModuleNumber: number | null; // null = "All Modules"
   setSelectedModule: (moduleNumber: number | null) => void;
@@ -75,6 +79,9 @@ export const useStudyStore = create<StudyLayoutState>()(
 
       showFeedbackModal: false,
       setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
+
+      showSiteRating: false,
+      setShowSiteRating: (show) => set({ showSiteRating: show }),
 
       selectedModuleNumber: null,
       setSelectedModule: (moduleNumber) =>

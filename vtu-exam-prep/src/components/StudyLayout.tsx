@@ -55,6 +55,7 @@ export default function StudyLayout({
     setFocusMode,
     toggleFocusMode,
     setShowShortcutsModal,
+    setShowSiteRating,
     setLeftSidebarOpen,
     setRightSidebarOpen,
   } = useStudyStore();
@@ -451,11 +452,17 @@ export default function StudyLayout({
                       </a>
                     </p>
                     <p className="text-[11px] text-muted-foreground/70">
-                      <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center gap-1">
-                        <GithubIcon size={10} /> thanmaydr0
+                      <a href="https://github.com/thanmaydr0" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors flex items-center justify-center gap-1.5">
+                        <GithubIcon size={12} /> thanmaydr0
                       </a>
                     </p>
                   </div>
+                  <button
+                    onClick={() => setShowSiteRating(true)}
+                    className="mt-4 text-[10px] text-accent/80 hover:text-accent font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full border border-accent/20 hover:border-accent/40 bg-accent/5 transition-all w-full"
+                  >
+                    Rate Experience
+                  </button>
                 </div>
               </div>
             </div>
