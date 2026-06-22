@@ -13,7 +13,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
     setError('');
 
     if (!name.trim() || !password.trim()) {
-      setError('Please enter both a name and a password.');
+      setError('Please enter both a username and a password.');
       return;
     }
 
@@ -57,14 +57,14 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           </div>
           <h1 className="text-2xl font-bold mb-2">Login / Register</h1>
           <p className="text-sm text-muted-foreground">
-            Enter a name and password. If the name is new, it will be registered automatically!
+            Enter a unique username and a password. If the username is new, it will be registered automatically!
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ml-1">
-              Your Name
+              Username
             </label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
