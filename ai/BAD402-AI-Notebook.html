@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAD402 — Artificial Intelligence Notebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E7;
+    --paper-deep:#EEE5D2;
+    --ink:#221E19;
+    --ink-soft:#6B6052;
+    --rule:#DCCFB2;
+    --navy:#1C2541;
+    --navy-soft:#3A4567;
+    --m1:#B9842F;   /* module 1 - brass */
+    --m2:#2F6E66;   /* module 2 - teal */
+    --m3:#A8434A;   /* module 3 - rose */
+    --m4:#5C4B8A;   /* module 4 - plum */
+    --m5:#3C6E91;   /* module 5 - slate blue */
+    --accent: var(--m1);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    line-height:1.55;
+  }
+
+  /* ---------- background texture ---------- */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(28,37,65,0.035) 35px, rgba(28,37,65,0.035) 36px);
+    z-index:0;
+  }
+
+  .app{
+    position:relative;
+    z-index:1;
+    display:flex;
+    min-height:100vh;
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  /* ---------- binder tab navigation ---------- */
+  .binder{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:64px 0 40px 0;
+    flex-shrink:0;
+    width:64px;
+  }
+  .tab{
+    --c: var(--m1);
+    position:relative;
+    width:64px;
+    height:96px;
+    background:var(--c);
+    color:#fff;
+    border:none;
+    cursor:pointer;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border-radius:10px 0 0 10px;
+    margin-right:-1px;
+    opacity:0.55;
+    transform:translateX(0);
+    transition:opacity .25s ease, transform .25s ease, width .25s ease;
+  }
+  .tab .num{ font-size:22px; font-weight:700; font-family:'Source Serif 4', serif; line-height:1; }
+  .tab .lbl{ writing-mode:vertical-rl; text-orientation:mixed; font-size:10.5px; opacity:.85; }
+  .tab:hover{ opacity:0.8; }
+  .tab.active{
+    opacity:1;
+    width:74px;
+    box-shadow: -6px 0 18px rgba(0,0,0,0.12);
+  }
+  .tab.locked{ cursor:default; }
+  .tab.locked:hover{ opacity:0.55; }
+  .tab .lock{
+    position:absolute; top:8px; right:8px;
+    font-size:11px; opacity:.8;
+  }
+
+  /* ---------- main page (paper) ---------- */
+  .page{
+    flex:1;
+    background:var(--paper-deep);
+    min-height:100vh;
+    border-left:2px solid var(--rule);
+    box-shadow: inset 8px 0 16px -12px rgba(28,37,65,0.18);
+  }
+  .page-inner{
+    padding:56px 60px 100px 56px;
+    max-width:880px;
+  }
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1.title{
+    font-family:'Source Serif 4', serif;
+    font-size:42px;
+    font-weight:700;
+    margin:0 0 8px 0;
+    color:var(--navy);
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:16px;
+    margin-bottom:28px;
+    max-width:60ch;
+  }
+  .meta-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:40px;
+  }
+  .chip{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    border:1px solid var(--rule);
+    background:var(--paper);
+    color:var(--ink-soft);
+    padding:5px 11px;
+    border-radius:999px;
+  }
+
+  /* ---------- question cards ---------- */
+  .qlist{ display:flex; flex-direction:column; gap:14px; }
+
+  details.card{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-left:4px solid var(--accent);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  details.card[open]{
+    box-shadow:0 6px 20px -10px rgba(28,37,65,0.25);
+  }
+  summary.card-head{
+    list-style:none;
+    cursor:pointer;
+    padding:18px 22px;
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    user-select:none;
+  }
+  summary.card-head::-webkit-details-marker{ display:none; }
+
+  .qtag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+    color:var(--accent);
+    flex-shrink:0;
+    padding-top:1px;
+    min-width:34px;
+  }
+  .qbody{ flex:1; }
+  .qtext{
+    font-family:'Source Serif 4', serif;
+    font-size:18.5px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.4;
+  }
+  .marks-pill{
+    display:inline-block;
+    margin-top:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    color:#fff;
+    background:var(--navy);
+    padding:3px 9px;
+    border-radius:999px;
+  }
+  .chevron{
+    flex-shrink:0;
+    width:22px; height:22px;
+    margin-top:2px;
+    color:var(--ink-soft);
+    transition:transform .25s ease;
+  }
+  details[open] .chevron{ transform:rotate(180deg); }
+
+  .answer{
+    padding:0 22px 26px 22px;
+    border-top:1px dashed var(--rule);
+    margin-top:2px;
+    padding-top:18px;
+  }
+  .answer h4{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.07em;
+    color:var(--accent);
+    margin:18px 0 8px 0;
+  }
+  .answer h4:first-child{ margin-top:0; }
+  .answer p{ margin:0 0 10px 0; color:var(--ink); }
+  .answer ul{ margin:0 0 10px 0; padding-left:20px; }
+  .answer li{ margin-bottom:6px; }
+  .answer table{
+    width:100%;
+    border-collapse:collapse;
+    margin:10px 0 16px 0;
+    font-size:14.5px;
+  }
+  .answer th, .answer td{
+    border:1px solid var(--rule);
+    padding:8px 10px;
+    text-align:left;
+    vertical-align:top;
+  }
+  .answer th{
+    background:var(--paper-deep);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--navy);
+  }
+  .answer code{
+    font-family:'JetBrains Mono', monospace;
+    background:var(--paper-deep);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:0.92em;
+  }
+  .ex-box{
+    background:var(--paper-deep);
+    border-left:3px solid var(--accent);
+    padding:10px 14px;
+    border-radius:4px;
+    font-size:14.5px;
+    margin:10px 0 16px 0;
+  }
+  .ex-box b{ color:var(--navy); }
+
+  /* ---------- coming soon ---------- */
+  .empty{
+    border:1.5px dashed var(--rule);
+    border-radius:10px;
+    padding:60px 30px;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  .empty .icon{
+    font-family:'Source Serif 4', serif;
+    font-size:36px;
+    color:var(--accent);
+    margin-bottom:10px;
+  }
+  .empty h3{
+    font-family:'Source Serif 4', serif;
+    color:var(--navy);
+    margin:6px 0;
+    font-size:20px;
+  }
+
+  .module-section{ display:none; }
+  .module-section.active{ display:block; }
+
+  footer.note{
+    margin-top:50px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--rule);
+    padding-top:16px;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 760px){
+    .app{ flex-direction:column; }
+    .binder{
+      flex-direction:row;
+      width:100%;
+      padding:18px 16px 0 16px;
+      overflow-x:auto;
+      gap:8px;
+    }
+    .tab{
+      width:auto;
+      height:48px;
+      flex-direction:row;
+      border-radius:8px 8px 0 0;
+      padding:0 14px;
+      white-space:nowrap;
+    }
+    .tab .lbl{ writing-mode:horizontal-tb; }
+    .tab.active{ width:auto; }
+    .page{ border-left:none; border-top:2px solid var(--rule); }
+    .page-inner{ padding:32px 20px 70px 20px; }
+    h1.title{ font-size:30px; }
+    summary.card-head{ padding:14px 16px; gap:10px; }
+    .qtext{ font-size:16.5px; }
+    .answer{ padding:0 16px 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Binder tab navigation -->
+  <nav class="binder" id="binder">
+    <button class="tab active" data-module="m1" style="--c:var(--m1)">
+      <span class="num">01</span><span class="lbl">MODULE&nbsp;1</span>
+    </button>
+    <button class="tab" data-module="m2" style="--c:var(--m2)">
+      <span class="num">02</span><span class="lbl">MODULE&nbsp;2</span>
+    </button>
+    <button class="tab" data-module="m3" style="--c:var(--m3)">
+      <span class="num">03</span><span class="lbl">MODULE&nbsp;3</span>
+    </button>
+    <button class="tab" data-module="m4" style="--c:var(--m4)">
+      <span class="num">04</span><span class="lbl">MODULE&nbsp;4</span>
+    </button>
+    <button class="tab" data-module="m5" style="--c:var(--m5)">
+      <span class="num">05</span><span class="lbl">MODULE&nbsp;5</span>
+    </button>
+  </nav>
+
+  <!-- Paper / content area -->
+  <main class="page">
+    <div class="page-inner">
+
+      <!-- ======================= MODULE 1 ======================= -->
+      <section class="module-section active" id="m1" data-accent="var(--m1)">
+        <div class="eyebrow">BAD402 · Artificial Intelligence</div>
+        <h1 class="title">Module 1 — Introduction to AI &amp; Intelligent Agents</h1>
+        <p class="subtitle">Ten exam-style 10-mark questions, each with a structured answer built for recall. Tap a question to open it.</p>
+        <div class="meta-row">
+          <span class="chip">10 Questions</span>
+          <span class="chip">10 Marks Each</span>
+          <span class="chip">VTU Pattern</span>
+        </div>
+
+        <div class="qlist">
+
+          <!-- Q1 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q1</span>
+              <span class="qbody">
+                <span class="qtext">Explain the four different approaches used to define Artificial Intelligence, with examples.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <p>AI definitions can be organised along two axes — <b>thought vs. behaviour</b>, and <b>human-like vs. ideally rational</b>. Crossing these axes gives four categories.</p>
+
+              <h4>1. Thinking Humanly — Cognitive Modeling</h4>
+              <ul>
+                <li>Defines AI as making machines "think" the way humans do — getting inside the actual working of the human mind.</li>
+                <li>Access to human thought is gained via <b>introspection</b> (catching our own thoughts), <b>psychological experiments</b>, and <b>brain imaging</b>.</li>
+                <li><b>Cognitive Science</b> blends AI computer models with experimental psychology to build testable theories of the mind. Example: Newell &amp; Simon's <i>General Problem Solver (GPS)</i> tried to match human problem-solving traces step by step.</li>
+              </ul>
+
+              <h4>2. Thinking Rationally — The "Laws of Thought"</h4>
+              <ul>
+                <li>Rooted in Aristotle's <b>syllogisms</b> — patterns that guarantee correct conclusions from correct premises.</li>
+                <li>Example: <i>Socrates is a man; all men are mortal; therefore Socrates is mortal.</i></li>
+                <li>Aims to build AI on formal logic. Faces two obstacles: (a) informal knowledge is hard to state in formal logical notation, especially under uncertainty; (b) a big gap exists between solving a problem <i>in principle</i> and solving it <i>in practice</i> (tractability).</li>
+              </ul>
+
+              <h4>3. Acting Humanly — The Turing Test</h4>
+              <ul>
+                <li>Turing (1950) proposed the <b>Imitation Game</b>: a computer passes if an interrogator cannot reliably tell its written answers from a human's.</li>
+                <li>Requires <b>natural language processing</b>, <b>knowledge representation</b>, <b>automated reasoning</b>, and <b>machine learning</b>; the <i>Total</i> Turing Test adds <b>computer vision</b> and <b>robotics</b>.</li>
+              </ul>
+
+              <h4>4. Acting Rationally — The Rational Agent</h4>
+              <ul>
+                <li>An <b>agent</b> is anything that acts; a <b>rational agent</b> acts so as to achieve the best (expected) outcome given what it knows.</li>
+                <li>Broader than the "laws of thought" view — correct inference is only one way to act rationally. Example: recoiling from a hot stove (a fast reflex) is often more successful than slow deliberate reasoning.</li>
+              </ul>
+
+              <div class="ex-box"><b>Exam tip:</b> Modern AI (and this course) leans on the <b>"acting rationally"</b> view because it is the most general and the easiest to study scientifically — it doesn't require matching human behaviour or fixed logical correctness.</div>
+            </div>
+          </details>
+
+          <!-- Q2 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q2</span>
+              <span class="qbody">
+                <span class="qtext">Describe the Turing Test. What capabilities must a computer have to pass it, and what additional capabilities does the Total Turing Test require?</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>The Test</h4>
+              <ul>
+                <li>Proposed by Alan Turing (1950) in <i>"Computing Machinery and Intelligence"</i>, replacing the vague question <i>"Can machines think?"</i> with an <b>operational test</b>.</li>
+                <li>Known as the <b>Imitation Game</b>: a human interrogator poses written questions to a hidden human and a hidden machine.</li>
+                <li>The computer <b>passes</b> if the interrogator cannot reliably distinguish the machine's responses from the human's.</li>
+              </ul>
+
+              <h4>Capabilities Required to Pass</h4>
+              <ul>
+                <li><b>Natural Language Processing</b> — to communicate successfully in a human language.</li>
+                <li><b>Knowledge Representation</b> — to store what it knows or is told.</li>
+                <li><b>Automated Reasoning</b> — to use stored knowledge to answer questions and draw new conclusions.</li>
+                <li><b>Machine Learning</b> — to adapt to new circumstances and detect/extrapolate patterns.</li>
+              </ul>
+
+              <h4>Total Turing Test</h4>
+              <p>Adds a <b>physical</b> dimension by including video signals, so the interrogator can test perceptual abilities too. This requires two more capabilities:</p>
+              <ul>
+                <li><b>Computer Vision</b> — to perceive objects.</li>
+                <li><b>Robotics</b> — to manipulate objects and move about.</li>
+              </ul>
+
+              <div class="ex-box">Together, these six capabilities (NLP, knowledge representation, reasoning, learning, vision, robotics) cover almost all of mainstream AI — which is why the Turing Test is still used as a motivating goal, even though it is rarely used as a working definition in practice.</div>
+            </div>
+          </details>
+
+          <!-- Q3 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q3</span>
+              <span class="qbody">
+                <span class="qtext">Discuss the various disciplines that contributed ideas, viewpoints, and techniques to Artificial Intelligence.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <p>AI is a confluence of many older fields, each asking a question relevant to building intelligent machines.</p>
+
+              <h4>Philosophy</h4>
+              <ul><li><i>Can formal rules give valid conclusions? Where does knowledge come from? How does knowledge lead to action?</i> Aristotle formalised syllogistic reasoning; Descartes championed <b>rationalism</b> — the power of reasoning to understand the world.</li></ul>
+
+              <h4>Mathematics</h4>
+              <ul><li><i>What can be computed? How do we reason under uncertainty?</i> Contributed formal logic, Turing's theory of computability, Gödel's <b>incompleteness</b> result (some true statements are unprovable), the idea of <b>intractability</b> (exponential-time problems), and probability theory.</li></ul>
+
+              <h4>Economics</h4>
+              <ul><li><i>How do we make decisions that maximise payoff?</i> Gave AI <b>decision theory</b>, combining probability with utility theory for decisions under uncertainty.</li></ul>
+
+              <h4>Neuroscience</h4>
+              <ul><li><i>How do brains process information?</i> Revealed that the brain's ~10<sup>11</sup> neurons act as computational units — the inspiration for artificial neural networks.</li></ul>
+
+              <h4>Psychology</h4>
+              <ul><li>Watson's <b>Behaviourism</b> studied only observable stimulus–response pairs. <b>Cognitive psychology</b> later viewed the brain as an information-processing device, much like a computer program.</li></ul>
+
+              <h4>Computer Engineering</h4>
+              <ul><li><i>How do we build an efficient computer?</i> AI needs an artifact to run on — from Turing's wartime Heath Robinson and Zuse's Z-3 to modern hardware.</li></ul>
+
+              <h4>Control Theory &amp; Cybernetics</h4>
+              <ul><li><i>How can artifacts operate under their own control?</i> From Ktesibios's self-regulating water clock to modern stochastic optimal control, which designs systems to maximise an objective function over time — closely matching the AI view of rational behaviour.</li></ul>
+
+              <h4>Linguistics</h4>
+              <ul><li><i>How does language relate to thought?</i> Chomsky's critique of behaviourist language theory gave rise to <b>computational linguistics / NLP</b> and to <b>knowledge representation</b> as a field.</li></ul>
+            </div>
+          </details>
+
+          <!-- Q4 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q4</span>
+              <span class="qbody">
+                <span class="qtext">Trace the history of Artificial Intelligence through its major phases of development.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <table>
+                <tr><th>Period</th><th>Phase</th><th>Highlight</th></tr>
+                <tr><td>1943–1955</td><td>Gestation of AI</td><td>Early theoretical/conceptual groundwork (neural models, computation theory) that laid AI's foundation.</td></tr>
+                <tr><td>1956</td><td>Birth of AI</td><td>The <b>Dartmouth Conference</b> at Dartmouth College — the term "Artificial Intelligence" is coined and the field is formally founded.</td></tr>
+                <tr><td>1952–1969</td><td>Early enthusiasm, great expectations</td><td>Researchers were highly optimistic that human-like intelligence was within reach.</td></tr>
+                <tr><td>1966–1973</td><td>A dose of reality</td><td>Limitations and setbacks forced a re-evaluation of early optimism.</td></tr>
+                <tr><td>1969–1979</td><td>Knowledge-based systems</td><td>Focus shifted to symbolic knowledge representation and building domain <b>expert systems</b>.</td></tr>
+                <tr><td>1980–present</td><td>AI becomes an industry</td><td>Commercialisation and widespread real-world application of AI.</td></tr>
+                <tr><td>1986–present</td><td>Return of neural networks</td><td>Resurgence of neural architectures, training algorithms, and deep learning.</td></tr>
+                <tr><td>1987–present</td><td>AI adopts the scientific method</td><td>Greater rigour: experiments, reproducibility, evidence-based research.</td></tr>
+                <tr><td>1995–present</td><td>Emergence of intelligent agents</td><td>Focus on autonomous agents that perceive, decide, and act to achieve goals.</td></tr>
+                <tr><td>2001–present</td><td>Availability of very large data sets</td><td>Big data fuels increasingly sophisticated, data-hungry AI models.</td></tr>
+              </table>
+            </div>
+          </details>
+
+          <!-- Q5 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q5</span>
+              <span class="qbody">
+                <span class="qtext">Define an agent and a rational agent. Explain the four factors that determine rationality, illustrating with the vacuum-cleaner world.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Key Definitions</h4>
+              <ul>
+                <li><b>Agent</b> — anything that perceives its environment through <i>sensors</i> and acts upon it through <i>actuators</i>.</li>
+                <li><b>Percept</b> — the agent's perceptual input at a given instant. <b>Percept sequence</b> — the complete history of everything perceived so far.</li>
+                <li><b>Agent function</b> — maps any given percept sequence to an action. <b>Agent program</b> — the concrete implementation that runs on the agent's architecture.</li>
+                <li><b>Rational agent</b> — for every possible percept sequence, it selects an action expected to <b>maximise its performance measure</b>, given the evidence from the percepts and whatever built-in knowledge it has.</li>
+              </ul>
+
+              <h4>Four Factors Determining Rationality</h4>
+              <ul>
+                <li>The <b>performance measure</b> that defines degree of success.</li>
+                <li>The agent's <b>prior knowledge</b> of the environment.</li>
+                <li>The <b>actions</b> the agent is able to perform.</li>
+                <li>The agent's <b>percept sequence to date</b>.</li>
+              </ul>
+
+              <h4>Worked Example: Vacuum-Cleaner World</h4>
+              <p>Agent function: <i>if current square is dirty → Suck; else move to the other square.</i></p>
+              <ul>
+                <li><b>Performance measure:</b> one point per clean square per time step, over 1000 steps.</li>
+                <li><b>Prior knowledge:</b> geography (squares A, B) known; dirt distribution and start location unknown.</li>
+                <li><b>Actions:</b> Left, Right, Suck.</li>
+                <li><b>Percepts:</b> agent correctly senses its location and whether that square is dirty.</li>
+              </ul>
+              <div class="ex-box">Under exactly these assumptions, the simple agent <b>is rational</b> — but change the performance measure (e.g., penalise movement) or the percepts (e.g., hide dirt status), and the same agent function may stop being rational. Rationality is therefore always relative to the task environment.</div>
+            </div>
+          </details>
+
+          <!-- Q6 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q6</span>
+              <span class="qbody">
+                <span class="qtext">What is a PEAS description? Give the PEAS description for an automated taxi driver and two other agent types.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <p><b>PEAS</b> stands for <b>P</b>erformance measure, <b>E</b>nvironment, <b>A</b>ctuators, <b>S</b>ensors — the first step in designing any agent is to specify its task environment fully using PEAS.</p>
+
+              <h4>PEAS — Automated Taxi Driver</h4>
+              <table>
+                <tr><th>Performance</th><th>Environment</th><th>Actuators</th><th>Sensors</th></tr>
+                <tr>
+                  <td>Safe, fast, legal, comfortable trip; maximise profits</td>
+                  <td>Roads, other traffic, pedestrians, customers</td>
+                  <td>Steering, accelerator, brake, signal, horn, display</td>
+                  <td>Cameras, sonar, speedometer, GPS, odometer, accelerometer, engine sensors, keyboard</td>
+                </tr>
+              </table>
+              <p>Goals such as speed, comfort, safety, and profit often <b>conflict</b>, so the agent must make trade-offs. The environment is rich and varied — rural lanes to freeways, with traffic, pedestrians, animals and roadworks.</p>
+
+              <h4>PEAS — Two More Examples</h4>
+              <table>
+                <tr><th>Agent Type</th><th>Performance</th><th>Environment</th><th>Actuators</th><th>Sensors</th></tr>
+                <tr><td>Medical diagnosis system</td><td>Healthy patient, reduced costs</td><td>Patient, hospital, staff</td><td>Display of questions, tests, diagnoses, treatments, referrals</td><td>Keyboard entry of symptoms, findings, patient's answers</td></tr>
+                <tr><td>Part-picking robot</td><td>Percentage of parts in correct bins</td><td>Conveyor belt with parts, bins</td><td>Jointed arm and hand</td><td>Camera, joint-angle sensors</td></tr>
+              </table>
+            </div>
+          </details>
+
+          <!-- Q7 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q7</span>
+              <span class="qbody">
+                <span class="qtext">Explain the various properties used to classify task environments, with suitable examples.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Fully Observable vs. Partially Observable</h4>
+              <p>Fully observable: sensors capture the <b>complete</b> relevant state (no internal state needed). Partially observable: sensors are noisy/limited (e.g., <b>taxi driving</b>). Unobservable: no sensors at all.</p>
+
+              <h4>Deterministic vs. Stochastic / Nondeterministic</h4>
+              <p>Deterministic: next state fully determined by current state + action (e.g., <b>crossword puzzle</b>). Stochastic: outcomes have quantified probabilities (e.g., <b>dice, poker</b>). Nondeterministic: outcomes are possible but no probabilities attached. Note: a multi-agent environment like <b>chess</b> is still treated as deterministic even though opponents' moves are unpredictable.</p>
+
+              <h4>Episodic vs. Sequential</h4>
+              <p>Episodic: each episode = one percept + one action, independent of past/future episodes (e.g., spotting defects on an <b>assembly line</b>). Sequential: current decisions affect future ones (e.g., <b>chess, taxi driving</b>). Episodic environments are simpler — no need to think ahead.</p>
+
+              <h4>Static vs. Dynamic vs. Semidynamic</h4>
+              <p>Dynamic: environment can change while the agent deliberates (e.g., <b>taxi driving</b>). Static: it doesn't (e.g., <b>crossword puzzle</b>). Semidynamic: the world doesn't change, but the agent's score does over time (e.g., <b>chess with a clock</b>).</p>
+
+              <h4>Discrete vs. Continuous</h4>
+              <p>Applies to state, time, percepts and actions. Discrete: <b>crossword puzzle</b>. Continuous: <b>taxi driving</b> (continuous state, time, percepts and actions).</p>
+
+              <h4>Single-Agent vs. Multi-Agent</h4>
+              <p>Single agent acts alone (e.g., <b>crossword</b>); multi-agent involves other agents whose goals may compete or cooperate (e.g., <b>chess, taxi driving</b>).</p>
+
+              <h4>Known vs. Unknown</h4>
+              <p>Describes the designer's/agent's knowledge of the environment's "laws of physics," not what is observable. Known environment can still be partially observable (e.g., <b>solitaire</b>); unknown environment can be fully observable (e.g., <b>a game whose rules you don't know</b>).</p>
+
+              <div class="ex-box"><b>Simplest case:</b> fully observable, single-agent, deterministic, episodic, static, discrete — e.g., the <b>simple vacuum cleaner</b>. <br><b>Hardest (most real-world) case:</b> partially observable, multi-agent, stochastic, sequential, dynamic, continuous — e.g., <b>taxi driving</b>.</div>
+            </div>
+          </details>
+
+          <!-- Q8 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q8</span>
+              <span class="qbody">
+                <span class="qtext">Describe the different types of agent architectures: simple reflex, model-based reflex, goal-based, utility-based, and learning agents.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <p>Agent = Architecture + Program. Agents are grouped into five classes of increasing generality/intelligence:</p>
+
+              <h4>1. Simple Reflex Agents</h4>
+              <ul>
+                <li>Select actions using only the <b>current percept</b>, via <b>condition–action rules</b> ("if dirty then suck").</li>
+                <li>Work only in <b>fully observable</b> environments; ignore percept history.</li>
+                <li><b>Limitations:</b> limited intelligence, no knowledge of non-perceptual state, rule tables can become huge, not adaptive to change.</li>
+              </ul>
+
+              <h4>2. Model-Based Reflex Agents</h4>
+              <ul>
+                <li>Maintain an <b>internal state</b> built from percept history, using a <b>model</b> of "how the world works."</li>
+                <li>Need two kinds of knowledge: how the world evolves independently of the agent, and how the agent's own actions affect the world.</li>
+                <li>Can work in <b>partially observable</b> environments. Example: tracking nearby cars while changing lanes.</li>
+              </ul>
+
+              <h4>3. Goal-Based Agents</h4>
+              <ul>
+                <li>Add explicit <b>goal</b> information on top of the world model, choosing actions that lead toward the goal.</li>
+                <li>May require <b>search and planning</b> over sequences of actions — making the agent proactive.</li>
+                <li>More flexible than reflex agents: changing the destination just means specifying a new goal, instead of rewriting many rules.</li>
+              </ul>
+
+              <h4>4. Utility-Based Agents</h4>
+              <ul>
+                <li>Extend goal-based agents with a <b>utility function</b> mapping each state to a real number measuring "how good" it is.</li>
+                <li>Useful when goals conflict, or when several goals can each be achieved only with some probability — utility picks the best trade-off.</li>
+                <li><b>Trade-off:</b> more capable, but harder to implement and computationally expensive.</li>
+              </ul>
+
+              <h4>5. Learning Agents</h4>
+              <ul>
+                <li>Made of four parts: <b>Performance element</b> (selects actions), <b>Critic</b> (judges performance against a standard), <b>Learning element</b> (improves the performance element using critic feedback), <b>Problem generator</b> (suggests exploratory actions).</li>
+                <li><b>Advantage:</b> robustness in initially unknown environments — the agent improves through experience rather than being hand-programmed.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- Q9 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q9</span>
+              <span class="qbody">
+                <span class="qtext">Differentiate between reflex agents and goal-based agents, and between goal-based and utility-based agents.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Reflex Agent vs. Goal-Based Agent</h4>
+              <table>
+                <tr><th>Reflex Agent</th><th>Goal-Based Agent</th></tr>
+                <tr><td>To change behaviour, many condition–action rules must be rewritten.</td><td>Knowledge is represented explicitly and can simply be updated — e.g., if it starts raining, braking knowledge updates and automatically alters all relevant behaviours.</td></tr>
+                <tr><td>Rules for turning/going straight work for only <b>one destination</b>; all must be replaced for a new one.</td><td>Behaviour changes to a new destination just by specifying a new <b>goal</b>.</td></tr>
+                <tr><td><i>Example:</i> brakes the instant it sees brake lights ahead.</td><td><i>Example:</i> reasons that a car ahead with brake lights on <b>will</b> slow down, and plans accordingly.</td></tr>
+              </table>
+
+              <h4>Goal-Based Agent vs. Utility-Based Agent</h4>
+              <ul>
+                <li>A goal-based agent only distinguishes "goal achieved" from "not achieved" — a <b>binary</b> view of success.</li>
+                <li>A utility-based agent uses a <b>utility function</b> to measure <i>how good</i> a state is on a continuous scale, not just whether the goal is met.</li>
+                <li>Utility agents handle <b>conflicting goals</b> by choosing an appropriate trade-off, and handle goals with <b>uncertain success</b> by weighing importance against likelihood of achieving them.</li>
+                <li>Cost of this extra power: utility agents are <b>more complex</b> to implement and may need expensive computation, sophisticated perception, reasoning and learning.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- Q10 -->
+          <details class="card">
+            <summary class="card-head">
+              <span class="qtag">Q10</span>
+              <span class="qbody">
+                <span class="qtext">Explain the structure of a Learning Agent with its components, and illustrate using the taxi-driving example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Why Learning Agents?</h4>
+              <p>Hand-programming an agent's full behaviour is inefficient and ineffective. The solution is to build a machine that can <b>learn from feedback</b> instead of being explicitly instructed for every situation — this also gives robustness in initially unknown environments.</p>
+
+              <h4>Four Components</h4>
+              <ul>
+                <li><b>Performance element</b> — selects external actions based on percepts; this is essentially the "agent" from the earlier designs (reflex/goal/utility-based).</li>
+                <li><b>Critic</b> — tells the learning element how well the agent is doing, judged against a fixed external <b>performance standard</b> (not chosen by the agent itself).</li>
+                <li><b>Learning element</b> — uses feedback from the critic to determine how the performance element should be modified/improved.</li>
+                <li><b>Problem generator</b> — suggests exploratory actions that lead to new, informative experiences, even if they aren't optimal in the short term.</li>
+              </ul>
+
+              <h4>Worked Example: Taxi Driving</h4>
+              <ul>
+                <li>The taxi makes a sharp left turn across three lanes; the <b>critic</b> observes the alarmed reactions of other drivers.</li>
+                <li>The <b>learning element</b> formulates a rule: this action was bad.</li>
+                <li>The <b>performance element</b> is updated with the new rule, so the mistake is less likely to repeat.</li>
+                <li>The <b>problem generator</b> might suggest deliberately testing the brakes on different road surfaces under different conditions — generating useful new experience even though it isn't immediately "optimal" driving.</li>
+              </ul>
+
+              <div class="ex-box">This four-part loop — <b>act → critique → learn → explore</b> — is what allows an agent to keep improving its performance over time rather than being a fixed, hand-coded system.</div>
+            </div>
+          </details>
+
+        </div>
+
+        <footer class="note">BAD402 · Artificial Intelligence — Module 1 of 5 · Source: course notes (vtucode.in)</footer>
+      </section>
+
+      <!-- ======================= MODULE 2-5 PLACEHOLDERS ======================= -->
+      <section class="module-section" id="m2">
+        <div class="eyebrow" style="color:var(--m2)">BAD402 · Artificial Intelligence</div>
+        <h1 class="title" style="color:var(--m2)">Module 2 — Problem-Solving &amp; Search</h1>
+        <p class="subtitle">Ten exam-style 10-mark questions, each with a structured answer built for recall. Tap a question to open it.</p>
+        <div class="meta-row">
+          <span class="chip">10 Questions</span>
+          <span class="chip">10 Marks Each</span>
+          <span class="chip">VTU Pattern</span>
+        </div>
+
+        <div class="qlist">
+
+          <!-- M2 Q1 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q1</span>
+              <span class="qbody">
+                <span class="qtext">Explain a problem-solving agent and the "formulate, search, execute" design cycle. Define a well-defined problem using its five components, with the Romania example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Problem-Solving Agent</h4>
+              <ul>
+                <li><b>Goal formulation</b> — based on the current situation and the agent's performance measure, this is the first step; it limits the objectives the agent will pursue.</li>
+                <li><b>Problem formulation</b> — deciding what actions and states to consider, given the goal.</li>
+                <li>An agent with several immediate options of unknown value decides what to do by first examining future action sequences that lead to states of <b>known value</b> — this process is called <b>search</b>.</li>
+                <li>A search algorithm takes a problem and returns a <b>solution</b> (an action sequence); carrying out these actions is the <b>execution phase</b>.</li>
+                <li>This gives the simple agent design: <b>formulate goal → formulate problem → search → execute</b>, then formulate a new goal once execution is complete.</li>
+              </ul>
+
+              <h4>Five Components of a Well-Defined Problem</h4>
+              <ul>
+                <li><b>Initial state</b> — where the agent starts. <i>Example:</i> <code>In(Arad)</code>.</li>
+                <li><b>Actions / ACTIONS(s)</b> — the set of actions applicable in a given state s. <i>Example:</i> from Arad, {Go(Sibiu), Go(Timisoara), Go(Zerind)}.</li>
+                <li><b>Transition model / RESULT(s,a)</b> — describes what each action does, returning the resulting state. <i>Example:</i> RESULT(In(Arad), Go(Zerind)) = In(Zerind). Together, initial state + actions + transition model define the <b>state space</b> — a graph of states (nodes) linked by actions.</li>
+                <li><b>Goal test</b> — determines whether a given state is a goal. <i>Example:</i> the goal is the singleton set {In(Bucharest)}.</li>
+                <li><b>Path cost function</b> — assigns a numeric cost to a path, usually the sum of <b>step costs</b> c(s,a,s'). <i>Example:</i> route distance in kilometres, since time/distance matters for reaching Bucharest.</li>
+              </ul>
+              <div class="ex-box">A <b>solution</b> is a path from the initial state to a goal state; an <b>optimal solution</b> has the lowest path cost among all solutions.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q2 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q2</span>
+              <span class="qbody">
+                <span class="qtext">What is abstraction in problem formulation? Explain when an abstraction is valid and when it is useful.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Abstraction</h4>
+              <ul>
+                <li>A problem formulation is a <b>model</b> — an abstract mathematical description, not the real thing.</li>
+                <li><b>Abstraction</b> is the process of removing irrelevant detail from a representation. <i>Example:</i> the state <code>In(Arad)</code> ignores travelling companions, the radio program, the scenery, the weather, etc., since they're irrelevant to finding a route to Bucharest.</li>
+                <li><b>Actions are abstracted too</b>: a driving action really consumes fuel, takes time, generates pollution, and so on — the formulation considers only the change in location, and omits actions like turning on the radio or "turn the wheel by one degree."</li>
+              </ul>
+
+              <h4>Validity vs. Usefulness</h4>
+              <ul>
+                <li><b>Valid:</b> an abstraction is valid if every abstract solution can be expanded into a solution in the more detailed world — e.g., for every detailed state "in Arad," there must be a detailed path to some state "in Sibiu," and so on.</li>
+                <li><b>Useful:</b> an abstraction is useful if carrying out each action in the abstract solution is <b>easier</b> than solving the original problem — easy enough to execute without further search or planning.</li>
+              </ul>
+              <div class="ex-box">Good abstraction removes as much detail as possible while staying valid and keeping actions easy to execute. Without useful abstractions, intelligent agents would be completely swamped by the complexity of the real world.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q3 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q3</span>
+              <span class="qbody">
+                <span class="qtext">Formulate the Vacuum World and the 8-Puzzle as search problems using the five-component definition.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Vacuum World</h4>
+              <ul>
+                <li><b>States:</b> determined by agent location + dirt status of each location. Two locations, each clean/dirty → 2 × 2² = <b>8 states</b>. With n locations: n · 2<sup>n</sup> states.</li>
+                <li><b>Initial state:</b> any state can be the initial state.</li>
+                <li><b>Actions:</b> Left, Right, Suck (larger worlds may add Up, Down).</li>
+                <li><b>Transition model:</b> actions have their expected effect, except Left in the leftmost square, Right in the rightmost square, and Suck in a clean square — these have no effect.</li>
+                <li><b>Goal test:</b> all squares are clean.</li>
+                <li><b>Path cost:</b> each step costs 1, so path cost = number of steps.</li>
+              </ul>
+
+              <h4>8-Puzzle</h4>
+              <ul>
+                <li><b>States:</b> the location of each of the 8 numbered tiles and the blank, across the 9 squares of a 3×3 board.</li>
+                <li><b>Initial state:</b> any state can be designated as the initial state (note: a given goal is reachable from exactly half of all possible initial states).</li>
+                <li><b>Actions:</b> move the blank space Left, Right, Up, or Down (the legal subset depends on the blank's position).</li>
+                <li><b>Transition model:</b> applying an action returns the resulting tile arrangement — e.g., applying Left swaps the blank with the tile to its left.</li>
+                <li><b>Goal test:</b> state matches the specified goal configuration.</li>
+                <li><b>Path cost:</b> each step costs 1.</li>
+              </ul>
+              <div class="ex-box">The 8-puzzle belongs to the <b>sliding-block puzzle</b> family (NP-complete) and has <b>9!/2 = 181,440</b> reachable states. The 15-puzzle has ~1.3 trillion states; the 24-puzzle has ~10<sup>25</sup> states.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q4 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q4</span>
+              <span class="qbody">
+                <span class="qtext">Explain the 8-Queens problem. Describe its incremental formulation and how a better formulation reduces the search space.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>The Problem</h4>
+              <p>Place eight queens on a chessboard so that <b>no queen attacks another</b> (same row, column, or diagonal). It remains a useful test problem for search algorithms even though efficient special-purpose solutions exist.</p>
+
+              <h4>Two Kinds of Formulation</h4>
+              <ul>
+                <li><b>Incremental formulation:</b> operators <i>augment</i> the state, starting from an empty board — each action adds one queen.</li>
+                <li><b>Complete-state formulation:</b> starts with all 8 queens already on the board and moves them around. In both cases, path cost is irrelevant — only the final state matters.</li>
+              </ul>
+
+              <h4>First (Naive) Incremental Formulation</h4>
+              <ul>
+                <li><b>States:</b> any arrangement of 0 to 8 queens on the board.</li>
+                <li><b>Initial state:</b> no queens on the board.</li>
+                <li><b>Actions:</b> add a queen to any empty square.</li>
+                <li><b>Goal test:</b> 8 queens on the board, none attacked.</li>
+              </ul>
+              <p>This gives roughly <b>1.8 × 10<sup>14</sup></b> possible sequences to investigate — far too many.</p>
+
+              <h4>Better Formulation</h4>
+              <ul>
+                <li><b>States:</b> arrangements of n queens (0 ≤ n ≤ 8), one per column in the leftmost n columns, with <b>no queen attacking another</b>.</li>
+                <li><b>Actions:</b> add a queen to any square in the leftmost empty column that is not attacked by an existing queen.</li>
+              </ul>
+              <div class="ex-box">This reformulation prunes attacked squares immediately, shrinking the state space from <b>1.8 × 10<sup>14</sup> down to just 2,057</b> states — making solutions easy to find. This demonstrates how problem formulation choice drastically affects search difficulty.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q5 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q5</span>
+              <span class="qbody">
+                <span class="qtext">Describe real-world problems in search: airline travel, touring problems, the Travelling Salesperson Problem, and robot navigation.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Airline Travel Problem</h4>
+              <ul>
+                <li><b>States:</b> a location (airport) + current time, plus "historical" details since flight cost may depend on earlier segments, fare basis, and domestic/international status.</li>
+                <li><b>Initial state:</b> specified by the user's query. <b>Actions:</b> take any flight from the current location/seat class leaving after the current time, allowing transfer time.</li>
+                <li><b>Transition model:</b> new state = flight's destination + arrival time. <b>Goal test:</b> at the user's final destination? <b>Path cost:</b> money, waiting time, flight time, customs, seat quality, time of day, frequent-flyer miles, etc.</li>
+              </ul>
+
+              <h4>Touring Problems</h4>
+              <ul>
+                <li>Related to route-finding, but the state must track not just current location but also the <b>set of cities already visited</b>.</li>
+                <li><i>Example:</i> initial state <code>In(Bucharest), Visited({Bucharest})</code>; goal test checks the agent is in Bucharest <b>and</b> all required cities have been visited.</li>
+              </ul>
+
+              <h4>Travelling Salesperson Problem (TSP)</h4>
+              <ul>
+                <li>A touring problem where <b>each city is visited exactly once</b>, aiming to find the <b>shortest</b> tour.</li>
+                <li>Known to be <b>NP-hard</b>; used in practice for circuit-board drilling paths and shop-floor stocking-machine movement, besides salesperson route planning.</li>
+              </ul>
+
+              <h4>Robot Navigation</h4>
+              <ul>
+                <li>A generalisation of route-finding to <b>continuous space</b> rather than a discrete set of routes.</li>
+                <li>For a circular robot on a flat surface, the space is essentially 2-D; with arms, legs, or wheels to control, the search space becomes <b>many-dimensional</b>, requiring advanced techniques to keep it finite.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M2 Q6 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q6</span>
+              <span class="qbody">
+                <span class="qtext">Differentiate between the state space and the search tree. Explain the TREE-SEARCH and GRAPH-SEARCH algorithms, including the role of the frontier and explored set.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>State Space vs. Search Tree</h4>
+              <ul>
+                <li><b>State space</b> = states + actions (the underlying graph of the problem).</li>
+                <li><b>Search tree</b> = nodes + actions — built by considering possible action sequences from the initial state at the root; nodes correspond to states, branches correspond to actions.</li>
+                <li><i>Example:</i> expanding <code>In(Arad)</code> generates three child nodes: In(Sibiu), In(Timisoara), In(Zerind).</li>
+              </ul>
+
+              <h4>TREE-SEARCH</h4>
+              <ul>
+                <li>Loop: if frontier is empty → failure; else remove a leaf node from the <b>frontier</b>, test if it's a goal, otherwise <b>expand</b> it (apply each legal action) and add resulting nodes back to the frontier.</li>
+                <li>Different search strategies differ only in <b>how they choose which node to expand next</b>.</li>
+              </ul>
+
+              <h4>GRAPH-SEARCH</h4>
+              <ul>
+                <li>"Algorithms that forget their history are doomed to repeat it" — GRAPH-SEARCH augments TREE-SEARCH with an <b>explored set</b> (closed list) that remembers every expanded node.</li>
+                <li>Newly generated nodes that match a state already in the explored set <b>or</b> the frontier are discarded, avoiding redundant paths.</li>
+                <li>Result: the search tree contains at most <b>one copy of each state</b>.</li>
+              </ul>
+
+              <h4>The Frontier as a Separator</h4>
+              <p>The frontier divides the state-space graph into an <b>explored region</b> and an <b>unexplored region</b> — every path from the initial state to an unexplored state must pass through the frontier. Each step moves one state from the frontier to explored, and moves new states from unexplored into the frontier, so the algorithm systematically examines the state space until a solution is found.</p>
+            </div>
+          </details>
+
+          <!-- M2 Q7 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q7</span>
+              <span class="qbody">
+                <span class="qtext">Explain the infrastructure required for search algorithms — the node data structure and the frontier queue.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Node Data Structure</h4>
+              <p>Each node n in the search tree has four components:</p>
+              <ul>
+                <li><b>n.STATE</b> — the state in the state space the node corresponds to.</li>
+                <li><b>n.PARENT</b> — the node in the search tree that generated this node.</li>
+                <li><b>n.ACTION</b> — the action applied to the parent to generate this node.</li>
+                <li><b>n.PATH-COST</b> — denoted g(n), the cost of the path from the initial state to this node, via the parent pointers.</li>
+              </ul>
+              <p>The <b>CHILD-NODE</b> function computes a child's components from its parent: STATE = RESULT(parent.STATE, action); PARENT = parent; ACTION = action; PATH-COST = parent.PATH-COST + STEP-COST(parent.STATE, action).</p>
+
+              <h4>Node vs. State</h4>
+              <ul>
+                <li>A <b>node</b> is a bookkeeping data structure representing a point in the search tree; a <b>state</b> represents a configuration of the world.</li>
+                <li>Nodes sit on particular paths (via PARENT pointers); states do not. Two different nodes can hold the <b>same state</b> if reached via two different search paths.</li>
+                <li>The <b>SOLUTION</b> function follows PARENT pointers back to the root to extract the action sequence once a goal node is found.</li>
+              </ul>
+
+              <h4>The Frontier — a Queue</h4>
+              <p>The frontier (set of generated-but-unexpanded nodes) is stored as a <b>queue</b>, with operations:</p>
+              <ul>
+                <li><b>EMPTY?(queue)</b> — true only if no elements remain.</li>
+                <li><b>POP(queue)</b> — removes and returns the first element.</li>
+                <li><b>INSERT(element, queue)</b> — inserts an element, returning the new queue.</li>
+              </ul>
+              <div class="ex-box">The <b>type</b> of queue determines the search strategy: <b>FIFO</b> queue → breadth-first search; <b>LIFO</b> (stack) → depth-first search; <b>priority queue</b> ordered by path cost → uniform-cost search.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q8 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q8</span>
+              <span class="qbody">
+                <span class="qtext">What criteria are used to measure the performance of a search algorithm? Explain the quantities b, d, and m.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Four Evaluation Criteria</h4>
+              <ul>
+                <li><b>Completeness:</b> is the algorithm guaranteed to find a solution whenever one exists?</li>
+                <li><b>Optimality:</b> does the strategy find the <b>optimal</b> (lowest path-cost) solution?</li>
+                <li><b>Time complexity:</b> how long does it take to find a solution?</li>
+                <li><b>Space complexity:</b> how much memory is needed to perform the search?</li>
+              </ul>
+              <p>Complexity is typically measured against the size of the state-space graph, |V| + |E| (vertices + edges).</p>
+
+              <h4>The Three Key Quantities</h4>
+              <ul>
+                <li><b>b</b> — the <b>branching factor</b>: the maximum number of successors of any node.</li>
+                <li><b>d</b> — the <b>depth</b> of the shallowest goal node (number of steps from the root).</li>
+                <li><b>m</b> — the <b>maximum length</b> of any path in the state space (may be infinite).</li>
+              </ul>
+              <div class="ex-box">Time is usually measured by the <b>number of nodes generated</b> during the search, and space by the <b>maximum number of nodes held in memory</b> at any point — these are the figures used to compare uninformed search strategies.</div>
+            </div>
+          </details>
+
+          <!-- M2 Q9 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q9</span>
+              <span class="qbody">
+                <span class="qtext">Explain Breadth-First Search and Depth-First Search algorithms with their complexity, advantages, and disadvantages.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Breadth-First Search (BFS)</h4>
+              <ul>
+                <li>Expands the <b>root</b> first, then all its successors, then their successors — all nodes at depth k are expanded before any node at depth k+1.</li>
+                <li>Implemented with a <b>FIFO queue</b> for the frontier; the goal test is applied when a node is <b>generated</b>, not when it's expanded.</li>
+                <li><b>Time complexity:</b> O(b<sup>d</sup>) — worst case generates b + b² + ⋯ + b<sup>d</sup> nodes. <b>Space complexity</b> is also O(b<sup>d</sup>), which is usually the bigger practical problem.</li>
+                <li><b>Complete</b> and <b>optimal</b> (when step costs are equal), since it always expands the shallowest unexpanded node first.</li>
+                <li><b>Advantages:</b> finds a solution if one exists; with multiple solutions, finds the one with the fewest steps.</li>
+                <li><b>Disadvantages:</b> requires storing an entire level in memory; very slow when the solution is far from the root.</li>
+              </ul>
+
+              <h4>Depth-First Search (DFS)</h4>
+              <ul>
+                <li>Always expands the <b>deepest</b> node in the current frontier; proceeds straight to the bottom of the tree, then backs up when a dead end is hit.</li>
+                <li>Implemented with a <b>LIFO queue</b> (stack) — the most recently generated node is expanded next.</li>
+                <li><b>Time complexity:</b> O(b<sup>m</sup>), where m is the maximum depth — can be much worse than BFS if m ≫ d, but much better if many solutions exist.</li>
+                <li><b>Advantages:</b> very low memory use — only a stack of nodes from root to current node need be stored.</li>
+                <li><b>Disadvantages:</b> not complete in infinite/looping state spaces (can run forever down one branch); not guaranteed optimal.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M2 Q10 -->
+          <details class="card" style="border-left-color:var(--m2)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m2)">Q10</span>
+              <span class="qbody">
+                <span class="qtext">Explain Depth-Limited Search, Iterative Deepening Search, Uniform-Cost Search, and Bidirectional Search, and compare all the uninformed search strategies.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Depth-Limited Search (DLS)</h4>
+              <ul>
+                <li>DFS supplied with a predetermined depth limit <i>l</i>; nodes at depth <i>l</i> are treated as having no successors — this fixes DFS's infinite-path problem.</li>
+                <li>Incomplete if <i>l</i> &lt; d (the goal lies beyond the limit); non-optimal if <i>l</i> &gt; d. <b>Time:</b> O(b<sup>l</sup>); <b>Space:</b> O(bl).</li>
+                <li>Can terminate with two kinds of failure: standard <i>failure</i> (no solution exists) or <i>cutoff</i> (no solution within the limit). DFS is the special case l → ∞.</li>
+              </ul>
+
+              <h4>Iterative Deepening Search (IDS)</h4>
+              <ul>
+                <li>Repeatedly runs depth-limited search with an increasing limit — 0, 1, 2, … — until the goal is found, at limit = d.</li>
+                <li>Combines DFS's modest memory (O(bd)) with BFS's completeness (for finite b) and optimality (when path cost is non-decreasing with depth).</li>
+                <li><b>Time complexity:</b> O(b<sup>d</sup>) — asymptotically same as BFS, with only modest extra cost for regenerating upper levels repeatedly.</li>
+                <li><b>Advantage:</b> combines BFS-like completeness with DFS-like memory efficiency. <b>Disadvantage:</b> states are generated multiple times across iterations.</li>
+              </ul>
+
+              <h4>Uniform-Cost Search (UCS)</h4>
+              <ul>
+                <li>Expands the node n with the <b>lowest path cost g(n)</b>, using a priority queue for the frontier.</li>
+                <li>Differs from BFS in two ways: (1) goal test applied on <b>expansion</b>, not generation, since the first-found goal may be suboptimal; (2) if a <b>better path</b> to a frontier node is found, it replaces the old one.</li>
+                <li>Complete and optimal provided step costs are ≥ a small positive constant ε.</li>
+              </ul>
+
+              <h4>Bidirectional Search</h4>
+              <ul>
+                <li>Runs two simultaneous searches — <b>forward</b> from the initial state and <b>backward</b> from the goal state — stopping when the two frontiers intersect.</li>
+                <li><b>Time &amp; space complexity</b> (with BFS on both sides): O(b<sup>d/2</sup>) — far cheaper than one-directional O(b<sup>d</sup>).</li>
+                <li><b>Advantages:</b> fast, lower memory. <b>Disadvantages:</b> hard to implement (needs an explicit, known goal state, and a way to compute predecessors).</li>
+              </ul>
+
+              <h4>Comparison Table</h4>
+              <table>
+                <tr><th>Criterion</th><th>BFS</th><th>DFS</th><th>DLS</th><th>IDS</th><th>UCS</th><th>Bidirectional</th></tr>
+                <tr><td>Complete?</td><td>Yes</td><td>No</td><td>No (if l&lt;d)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                <tr><td>Optimal?</td><td>Yes*</td><td>No</td><td>No</td><td>Yes*</td><td>Yes</td><td>Yes</td></tr>
+                <tr><td>Time</td><td>O(b<sup>d</sup>)</td><td>O(b<sup>m</sup>)</td><td>O(b<sup>l</sup>)</td><td>O(b<sup>d</sup>)</td><td>O(b<sup>d</sup>)</td><td>O(b<sup>d/2</sup>)</td></tr>
+                <tr><td>Space</td><td>O(b<sup>d</sup>)</td><td>O(bm)</td><td>O(bl)</td><td>O(bd)</td><td>O(b<sup>d</sup>)</td><td>O(b<sup>d/2</sup>)</td></tr>
+              </table>
+              <p style="font-size:13px;color:var(--ink-soft)">*Optimal when step costs are equal/non-decreasing with depth.</p>
+            </div>
+          </details>
+
+        </div>
+
+        <footer class="note">BAD402 · Artificial Intelligence — Module 2 of 5 · Source: course notes (vtucode.in)</footer>
+      </section>
+
+      <section class="module-section" id="m3">
+        <div class="eyebrow" style="color:var(--m3)">BAD402 · Artificial Intelligence</div>
+        <h1 class="title" style="color:var(--m3)">Module 3 — Informed Search &amp; Logical Agents</h1>
+        <p class="subtitle">Ten exam-style 10-mark questions, each with a structured answer built for recall. Tap a question to open it.</p>
+        <div class="meta-row">
+          <span class="chip">10 Questions</span>
+          <span class="chip">10 Marks Each</span>
+          <span class="chip">VTU Pattern</span>
+        </div>
+
+        <div class="qlist">
+
+          <!-- M3 Q1 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q1</span>
+              <span class="qbody">
+                <span class="qtext">Explain best-first search and the heuristic function. Describe Greedy Best-First Search with the Romania example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Informed Search &amp; Best-First Search</h4>
+              <ul>
+                <li>An <b>informed search</b> strategy uses problem-specific knowledge beyond the problem definition, finding solutions more efficiently than uninformed search.</li>
+                <li><b>Best-first search</b> is an instance of TREE-SEARCH/GRAPH-SEARCH where a node is selected for expansion based on an <b>evaluation function f(n)</b> — the node with the lowest f(n) is expanded first.</li>
+                <li>Most best-first algorithms use a <b>heuristic function h(n)</b> = estimated cost of the cheapest path from node n to a goal. h(n) depends only on the state at n (unlike g(n), the actual path cost so far).</li>
+              </ul>
+
+              <h4>Greedy Best-First Search</h4>
+              <ul>
+                <li>Tries to expand the node <b>closest to the goal</b>: evaluation function is just f(n) = h(n).</li>
+                <li><i>Example:</i> using straight-line distance h<sub>SLD</sub> to Bucharest — h<sub>SLD</sub>(In(Arad)) = 366.</li>
+                <li>From Arad, <b>Sibiu</b> is expanded first (closest to Bucharest), then <b>Fagaras</b> (closest from Sibiu's children), which generates <b>Bucharest</b> — the goal.</li>
+              </ul>
+
+              <h4>Properties</h4>
+              <ul>
+                <li>For this problem it finds a solution with <b>minimal search cost</b> — no node off the solution path is ever expanded.</li>
+                <li>It is <b>not optimal</b>: the path via Sibiu→Fagaras→Bucharest is 32 km longer than the path via Rimnicu Vilcea→Pitesti.</li>
+                <li>This is why it's called "greedy" — at each step it grabs the option that looks closest to the goal, without considering the cost already spent.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q2 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q2</span>
+              <span class="qbody">
+                <span class="qtext">Explain A* search. Define its evaluation function and illustrate its working on the Romania route-finding problem.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>A* Search</h4>
+              <ul>
+                <li>The most widely known best-first search. Evaluation function combines both costs:</li>
+              </ul>
+              <div class="ex-box"><b>f(n) = g(n) + h(n)</b><br>g(n) = actual cost from start to n; h(n) = estimated cost from n to goal → f(n) = estimated cost of the cheapest solution <i>through</i> n.</div>
+              <ul>
+                <li>At each step, A* expands the frontier node with the <b>lowest f(n)</b> — provided h(n) satisfies certain conditions, A* is both <b>complete</b> and <b>optimal</b>.</li>
+              </ul>
+
+              <h4>Romania Example (abridged)</h4>
+              <ul>
+                <li>From Arad (f = 0+366 = 366), Sibiu is expanded (f = 140+253 = 393).</li>
+                <li>Expanding Sibiu's children, <b>Rimnicu Vilcea</b> has the lowest f (220+193=413) and is expanded, producing Pitesti, Craiova, Sibiu.</li>
+                <li>Bucharest first appears on the frontier (via Fagaras) with f = 450, but is <b>not</b> selected yet because Pitesti has a lower f-cost (417) — there might still be a cheaper solution through Pitesti.</li>
+                <li>Expanding Pitesti gives Bucharest with f = 418 — lower than 450 — and this path is chosen, confirming A* doesn't settle for a worse goal node just because it was found first.</li>
+              </ul>
+              <div class="ex-box">This illustrates the key discipline of A*: the <b>goal test happens at expansion</b>, not generation, so a cheaper path found later can still override an earlier, costlier path to the goal.</div>
+            </div>
+          </details>
+
+          <!-- M3 Q3 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q3</span>
+              <span class="qbody">
+                <span class="qtext">Explain the conditions for optimality of A* search — admissibility and consistency — and discuss why A* is optimally efficient.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Admissible Heuristic</h4>
+              <ul>
+                <li>h(n) is <b>admissible</b> if it <b>never overestimates</b> the true cost to reach the goal — admissible heuristics are inherently <b>optimistic</b>.</li>
+                <li>Since f(n) = g(n) + h(n) and g(n) is the real cost so far, f(n) never overestimates the true cost of a solution through n.</li>
+                <li><i>Example:</i> straight-line distance h<sub>SLD</sub> is admissible because the shortest path between two points is always a straight line.</li>
+                <li><b>Tree-search A*</b> is optimal if h(n) is admissible.</li>
+              </ul>
+
+              <h4>Consistency (Monotonicity)</h4>
+              <ul>
+                <li>A stronger condition, required for <b>graph-search A*</b> to be optimal: for every node n and successor n′ via action a,</li>
+              </ul>
+              <div class="ex-box">h(n) ≤ c(n, a, n′) + h(n′) — a form of the <b>triangle inequality</b>.</div>
+              <ul>
+                <li>If h is consistent, then f(n) values are <b>nondecreasing</b> along any path — this lets A* draw "contours" of increasing f-cost fanning out from the start, like a topographic map.</li>
+                <li><b>Graph-search A*</b> is optimal if h(n) is consistent.</li>
+              </ul>
+
+              <h4>A* Expands What It Must</h4>
+              <ul>
+                <li>If C* is the cost of the optimal solution: A* expands <b>all</b> nodes with f(n) &lt; C*, may expand some nodes on the "goal contour" (f(n)=C*), but expands <b>none</b> with f(n) &gt; C*.</li>
+                <li><b>Completeness</b> needs only finitely many nodes with cost ≤ C*, true if step costs exceed some ε &gt; 0 and b is finite.</li>
+                <li><b>Optimally efficient:</b> for a given consistent heuristic, no other optimal algorithm is guaranteed to expand fewer nodes than A* — any algorithm that skips expanding nodes with f(n) &lt; C* risks missing the optimal solution.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q4 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q4</span>
+              <span class="qbody">
+                <span class="qtext">Explain memory-bounded heuristic search: IDA*, Recursive Best-First Search (RBFS), and SMA*.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>IDA* (Iterative-Deepening A*)</h4>
+              <ul>
+                <li>Adapts iterative deepening to heuristic search: the cutoff is the <b>f-cost (g+h)</b>, not the depth.</li>
+                <li>Each iteration's cutoff is the smallest f-cost that exceeded the previous cutoff. Practical for many unit-step-cost problems; avoids the overhead of a sorted queue.</li>
+              </ul>
+
+              <h4>Recursive Best-First Search (RBFS)</h4>
+              <ul>
+                <li>A recursive algorithm mimicking best-first search using only <b>linear space</b>.</li>
+                <li>Tracks an <b>f-limit</b> — the f-value of the best alternative path from any ancestor. If the current node exceeds this limit, recursion <b>unwinds</b> to the alternative.</li>
+                <li>As it unwinds, RBFS replaces each node's f-value with the <b>backed-up value</b> (best f-value of its children) — so it remembers how good the forgotten subtree was, and can decide later whether re-expanding it is worthwhile.</li>
+                <li>More efficient than IDA* but still suffers from <b>excessive node regeneration</b>.</li>
+              </ul>
+
+              <h4>Limitations of IDA* / RBFS</h4>
+              <ul>
+                <li>Both use <b>too little</b> memory — IDA* keeps just one number (the f-limit) between iterations; RBFS uses only linear space and can't exploit extra memory even if available.</li>
+                <li>Because they forget most of what they've done, they may <b>re-expand the same states</b> many times, especially with redundant paths in graphs.</li>
+              </ul>
+
+              <h4>SMA* (Simplified Memory-Bounded A*)</h4>
+              <ul>
+                <li>Proceeds like A*, expanding the best leaf, until <b>memory is full</b>.</li>
+                <li>When full, it <b>drops the worst leaf node</b> (highest f-value) and backs up its value to the parent — so the ancestor still "remembers" how good that forgotten subtree was.</li>
+                <li>SMA* <b>regenerates</b> a forgotten subtree only once every other path looks worse than the forgotten one — using all available memory efficiently.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q5 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q5</span>
+              <span class="qbody">
+                <span class="qtext">Discuss heuristic functions for the 8-puzzle (h1 and h2). Explain the effective branching factor and heuristic dominance.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Two Candidate Heuristics</h4>
+              <ul>
+                <li><b>h₁ = number of misplaced tiles.</b> Admissible because every misplaced tile must be moved at least once. For a typical start state, h₁ = 8.</li>
+                <li><b>h₂ = sum of (Manhattan/city-block) distances</b> of each tile from its goal position (no diagonals). Admissible because each move can shift a tile only one step closer. Example: h₂ = 18 for tiles 1–8 in a sample state, while the true solution cost is 26 — neither heuristic overestimates.</li>
+              </ul>
+
+              <h4>Effective Branching Factor (b*)</h4>
+              <ul>
+                <li>If A* generates N nodes total to find a solution at depth d, b* is the branching factor a <b>uniform tree of depth d</b> would need to contain N+1 nodes: N+1 = 1 + b* + (b*)² + ⋯ + (b*)<sup>d</sup>.</li>
+                <li><i>Example:</i> a solution at depth 5 found using 52 nodes gives b* ≈ 1.92.</li>
+                <li>A <b>well-designed heuristic</b> has b* close to 1 — meaning the search is almost perfectly guided, expanding very few extra nodes.</li>
+              </ul>
+
+              <h4>Dominance</h4>
+              <ul>
+                <li>For every node n, h₂(n) ≥ h₁(n) — so <b>h₂ dominates h₁</b>.</li>
+                <li>Dominance translates directly into efficiency: A* using h₂ <b>never expands more nodes</b> than A* using h₁, since a higher (but still admissible) h gets closer to the true cost and prunes the search more.</li>
+                <li>Testing on 1200 random 8-puzzle instances confirmed A*(h₂) consistently generates far fewer nodes than A*(h₁) and IDS, with a lower effective branching factor.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q6 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q6</span>
+              <span class="qbody">
+                <span class="qtext">Explain how admissible heuristics can be generated from relaxed problems, pattern databases, and learning from experience.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Relaxed Problems</h4>
+              <ul>
+                <li>A <b>relaxed problem</b> has fewer restrictions on actions — its state-space graph is a <b>supergraph</b> of the original, since removing restrictions adds edges.</li>
+                <li>The optimal solution cost of the relaxed problem is an <b>admissible heuristic</b> for the original problem (it may be cheaper because of "shortcut" edges, never more expensive).</li>
+                <li><i>8-puzzle example:</i> relaxing "A is adjacent to B and B is blank" to just "A is adjacent to B" yields <b>h₂</b> (Manhattan distance); relaxing to "B is blank" or to no restriction at all yields <b>h₁</b> (misplaced tiles).</li>
+                <li>If several admissible heuristics h₁…h<sub>m</sub> are available with none dominating the rest, define <b>h(n) = max{h₁(n), …, h<sub>m</sub>(n)}</b> — this composite heuristic is still admissible and consistent, and dominates every component.</li>
+              </ul>
+
+              <h4>Pattern Databases</h4>
+              <ul>
+                <li>Derive an admissible heuristic from the exact solution cost of a <b>subproblem</b> — e.g., getting tiles 1,2,3,4 into place in the 8-puzzle, ignoring the rest.</li>
+                <li>Store exact costs for <b>every possible configuration</b> of that subproblem (the database), built by searching backward from the goal.</li>
+                <li>During search, look up the current state's subproblem configuration to get h<sub>DB</sub> instantly.</li>
+                <li><b>Disjoint pattern databases:</b> if subproblems (e.g. 1-2-3-4 and 5-6-7-8) don't share tiles/moves, their costs can be <b>summed</b> (not just maxed) and the sum remains a valid lower bound — giving a much stronger heuristic.</li>
+              </ul>
+
+              <h4>Learning Heuristics from Experience</h4>
+              <ul>
+                <li>Each <b>optimal solution</b> to a problem gives training examples: a state from the solution path, paired with its actual remaining cost.</li>
+                <li>A learning algorithm (neural nets, decision trees, etc.) uses these examples to predict h(n) for new states.</li>
+                <li>Works best with relevant <b>features</b> rather than raw states — e.g., x₁ = "number of misplaced tiles," x₂ = "number of adjacent-tile pairs not adjacent in the goal."</li>
+                <li>A common approach: a <b>linear combination</b> h(n) = c₁x₁(n) + c₂x₂(n), with constants fitted to actual solution-cost data.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q7 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q7</span>
+              <span class="qbody">
+                <span class="qtext">Explain knowledge-based agents — their structure, the TELL/ASK operations, the generic KB-Agent algorithm, and the three levels at which they can be viewed.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Knowledge-Based Agents</h4>
+              <ul>
+                <li>Maintain an internal state of knowledge, <b>reason</b> over it, <b>update</b> it from observations, and choose actions — composed of a <b>Knowledge Base (KB)</b> and an <b>Inference System</b>.</li>
+                <li><b>KB:</b> a set of <i>sentences</i> in a knowledge representation language, storing facts about the world.</li>
+                <li><b>Inference system:</b> applies logical rules to derive new sentences ("deriving new sentences from old"), keeping the KB up to date.</li>
+                <li>A knowledge-based agent must be able to: represent states/actions, incorporate new percepts, update its internal world-representation, deduce hidden aspects of the world, and deduce appropriate actions.</li>
+              </ul>
+
+              <h4>TELL and ASK</h4>
+              <ul>
+                <li><b>TELL</b> — adds new information (a percept or fact) to the KB.</li>
+                <li><b>ASK</b> — queries the KB for the action it should perform.</li>
+              </ul>
+
+              <h4>Generic KB-Agent Algorithm</h4>
+              <p>On each call with a new percept, the agent: (1) <b>TELLs</b> the KB the percept (via MAKE-PERCEPT-SENTENCE); (2) <b>ASKs</b> the KB for the best action (via MAKE-ACTION-QUERY); (3) <b>TELLs</b> the KB that the chosen action was executed (via MAKE-ACTION-SENTENCE); then increments the time counter and returns the action.</p>
+
+              <h4>Three Levels of a Knowledge-Based Agent</h4>
+              <ul>
+                <li><b>Knowledge level:</b> specifies <i>what</i> the agent knows and its goals — e.g., a taxi agent "knows the way from A to B."</li>
+                <li><b>Logical level:</b> encodes that knowledge into logical sentences — e.g., <code>Links(GoldenGateBridge, SanFrancisco, MarinCounty)</code>.</li>
+                <li><b>Implementation level:</b> the physical realisation — the agent actually executes its logic/knowledge to reach the destination.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q8 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q8</span>
+              <span class="qbody">
+                <span class="qtext">Describe the Wumpus World environment with its PEAS description, and explain how the agent reasons through its first few moves.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>The World</h4>
+              <p>A 4×4 grid cave of 16 rooms. A <b>Wumpus</b> (a beast) eats any agent entering its room; some rooms have <b>bottomless pits</b>; one room may have <b>gold</b>. The goal: grab the gold and exit, without dying.</p>
+
+              <h4>PEAS Description</h4>
+              <ul>
+                <li><b>Performance:</b> +1000 for emerging with gold; −1000 for death (Wumpus/pit); −1 per action; −10 for using the arrow.</li>
+                <li><b>Environment:</b> 4×4 grid; agent starts at [1,1] facing right; Wumpus and gold placed randomly (not at [1,1]); each other square is a pit with probability 0.2.</li>
+                <li><b>Actuators/Actions:</b> Forward, TurnLeft/TurnRight (90°), Grab, Shoot (single arrow, straight line until it hits the Wumpus or a wall), Climb (only from [1,1]).</li>
+                <li><b>Sensors</b> (5 one-bit percepts): <b>Stench</b> (Wumpus in/adjacent), <b>Breeze</b> (pit adjacent), <b>Glitter</b> (gold in this square), <b>Bump</b> (hit a wall), <b>Scream</b> (Wumpus killed).</li>
+              </ul>
+
+              <h4>Reasoning Through the First Moves</h4>
+              <ul>
+                <li><b>[1,1]:</b> percept [None,None,None,None,None] — no stench/breeze, so [1,2] and [2,1] are pit/Wumpus-free.</li>
+                <li>Moving to <b>[2,1]</b>: perceives Breeze → a pit is in [2,2] or [3,1] (marked P?). Agent does <b>not</b> move further blindly; it backtracks to [1,1].</li>
+                <li>Moving to <b>[1,2]</b> instead: perceives Stench → Wumpus must be nearby, but not in [1,1] (rules) and not in [2,2] (no stench was felt at [2,1]) ⇒ Wumpus is in <b>[1,3]</b> (marked W!). No breeze here ⇒ no pit in [2,2] ⇒ [2,2] is safe (OK).</li>
+                <li>Moving to <b>[2,2]</b>, then <b>[2,3]</b>: perceives <b>Glitter</b> → Grab the gold, then return to [1,1] and Climb out.</li>
+              </ul>
+              <div class="ex-box">This walkthrough shows <b>logical inference in action</b> — the agent combines current percepts with the fixed rules of the world to safely deduce which unseen squares are dangerous and which are OK.</div>
+            </div>
+          </details>
+
+          <!-- M3 Q9 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q9</span>
+              <span class="qbody">
+                <span class="qtext">Explain the syntax and semantics of Propositional Logic. Define entailment, model checking, validity, and satisfiability.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Syntax</h4>
+              <ul>
+                <li><b>Atomic sentences:</b> a single proposition symbol (e.g., P, Q, W<sub>1,3</sub>), each either true or false.</li>
+                <li><b>Complex sentences</b> use five connectives: <b>¬</b> (not/negation), <b>∧</b> (and/conjunction), <b>∨</b> (or/disjunction), <b>⇒</b> (implies, also called a rule), <b>⇔</b> (if and only if / biconditional).</li>
+                <li>A <b>literal</b> is an atomic sentence (positive literal) or its negation (negative literal).</li>
+              </ul>
+
+              <h4>Semantics</h4>
+              <ul>
+                <li>A <b>model</b> fixes a truth value (true/false) for every proposition symbol.</li>
+                <li>Rules: ¬P true iff P false; P∧Q true iff both true; P∨Q true iff either true; P⇒Q true <b>unless</b> P true and Q false; P⇔Q true iff P and Q have the <b>same</b> truth value.</li>
+              </ul>
+
+              <h4>Entailment &amp; Model Checking</h4>
+              <ul>
+                <li><b>α ⊨ β</b> ("α entails β") iff in <b>every</b> model where α is true, β is also true — equivalently M(α) ⊆ M(β).</li>
+                <li><b>Model checking:</b> enumerate all possible models and verify α holds in every model where the KB holds. <i>Wumpus example:</i> with 7 relevant symbols, 128 models exist; KB is true in only 3 — checking shows KB ⊨ "no pit in [1,2]" but KB ⊭ "no pit in [2,2]".</li>
+                <li>This algorithm is <b>sound</b> (only derives entailed sentences) and <b>complete</b> (always terminates, examining finitely many of the 2<sup>n</sup> models) — time complexity O(2<sup>n</sup>), space O(n).</li>
+              </ul>
+
+              <h4>Validity &amp; Satisfiability</h4>
+              <ul>
+                <li><b>Valid</b> (a tautology): true in <b>all</b> models, e.g., P ∨ ¬P. α ⊨ β iff (α ⇒ β) is valid.</li>
+                <li><b>Satisfiable:</b> true in <b>at least one</b> model. α is valid iff ¬α is unsatisfiable.</li>
+                <li><b>Proof by refutation:</b> α ⊨ β iff (α ∧ ¬β) is unsatisfiable — assume β false, derive a contradiction with the known facts α.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M3 Q10 -->
+          <details class="card" style="border-left-color:var(--m3)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m3)">Q10</span>
+              <span class="qbody">
+                <span class="qtext">Explain propositional theorem proving via inference rules and resolution, including CNF conversion, the resolution algorithm, and forward/backward chaining.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Inference Rules</h4>
+              <ul>
+                <li><b>Modus Ponens:</b> from α⇒β and α, infer β.</li>
+                <li><b>And-Elimination:</b> from α∧β, infer α (or β).</li>
+                <li>Standard logical equivalences (De Morgan, double-negation, contraposition, etc.) can also serve as inference rules — e.g., biconditional elimination splits α⇔β into (α⇒β)∧(β⇒α).</li>
+                <li>A proof can itself be framed as a <b>search problem</b>: initial state = KB, actions = applicable inference rules, result = adding the rule's conclusion, goal = a state containing the sentence to be proved.</li>
+              </ul>
+
+              <h4>Conjunctive Normal Form (CNF)</h4>
+              <p>A sentence written as a conjunction of clauses (disjunctions of literals). Conversion steps: (1) eliminate ⇔ via (α⇒β)∧(β⇒α); (2) eliminate ⇒ via ¬α∨β; (3) push ¬ inward using De Morgan's laws and double-negation elimination; (4) distribute ∨ over ∧.</p>
+
+              <h4>Resolution</h4>
+              <ul>
+                <li><b>Unit resolution:</b> from a clause (ℓ₁∨⋯∨ℓ<sub>k</sub>) and a complementary literal m, infer the clause with that literal removed.</li>
+                <li><b>Full resolution rule:</b> two clauses with complementary literals l<sub>i</sub> and m<sub>j</sub> produce a new clause containing all remaining literals from both (duplicates removed by <b>factoring</b>).</li>
+                <li><b>Resolution algorithm (PL-RESOLUTION):</b> convert (KB ∧ ¬α) to CNF; repeatedly resolve clause pairs with complementary literals, adding new clauses. Terminates when either (a) no new clauses can be added → KB ⊭ α, or (b) the <b>empty clause</b> is derived → KB ⊨ α.</li>
+                <li><b>Ground resolution theorem (completeness):</b> if a clause set is unsatisfiable, its resolution closure contains the empty clause.</li>
+              </ul>
+
+              <h4>Forward Chaining vs. Backward Chaining</h4>
+              <ul>
+                <li><b>Forward chaining (PL-FC-ENTAILS?):</b> starts from known facts; whenever <b>all premises</b> of an implication are known, its conclusion is added. Continues until the query is derived or no more inferences are possible. Sound, complete, runs in <b>linear time</b>, and is <b>data-driven</b> — useful for deriving conclusions from incoming percepts without a specific query in mind.</li>
+                <li><b>Backward chaining:</b> <b>goal-directed</b> reasoning — works backward from the query, useful for answering specific questions like "What shall I do now?"</li>
+                <li>Both can be visualised on an <b>AND–OR graph</b>: linked arcs (∧) mean every branch must be proved; unlinked branches (∨) mean any one suffices.</li>
+              </ul>
+            </div>
+          </details>
+
+        </div>
+
+        <footer class="note">BAD402 · Artificial Intelligence — Module 3 of 5 · Source: course notes (vtucode.in)</footer>
+      </section>
+
+      <section class="module-section" id="m4">
+        <div class="eyebrow" style="color:var(--m4)">BAD402 · Artificial Intelligence</div>
+        <h1 class="title" style="color:var(--m4)">Module 4 — First-Order Logic &amp; Inference</h1>
+        <p class="subtitle">Ten exam-style 10-mark questions, each with a structured answer built for recall. Tap a question to open it.</p>
+        <div class="meta-row">
+          <span class="chip">10 Questions</span>
+          <span class="chip">10 Marks Each</span>
+          <span class="chip">VTU Pattern</span>
+        </div>
+
+        <div class="qlist">
+
+          <!-- M4 Q1 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q1</span>
+              <span class="qbody">
+                <span class="qtext">Discuss the nature of representation languages. Compare programming languages, natural language, and propositional logic, and explain ontological vs. epistemological commitment.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Programming Languages as Representation</h4>
+              <ul>
+                <li>Data structures can represent facts (e.g., a 4×4 array for the wumpus world), but lack a <b>general mechanism for deriving facts from other facts</b> — every update needs a domain-specific procedure.</li>
+                <li>They also can't easily express <b>partial information</b>, like "there is a pit in [2,2] or [3,1]," or conditional facts like "if the wumpus is in [1,1] then he is not in [2,2]."</li>
+              </ul>
+
+              <h4>Propositional Logic vs. Natural Language</h4>
+              <ul>
+                <li>Propositional logic is <b>declarative</b> (semantics based on a truth relation to possible worlds) and handles partial information via disjunction/negation. It is also <b>compositional</b> — the meaning of a sentence is a function of the meaning of its parts.</li>
+                <li>Natural language is highly expressive but serves mainly as a medium for <b>communication</b>, and suffers from <b>ambiguity</b> — undesirable in a representation language.</li>
+                <li>First-order logic borrows natural language's idea of objects (nouns) and relations (verbs) while keeping propositional logic's unambiguous, compositional, declarative foundation.</li>
+              </ul>
+
+              <h4>Ontological vs. Epistemological Commitment</h4>
+              <ul>
+                <li><b>Ontological commitment</b> — what a language assumes <i>exists</i> in the world. Propositional logic: just facts (true/false). First-order logic: facts, <b>objects</b>, and <b>relations</b>. Temporal logic adds <b>times</b>. Higher-order logic treats relations/functions themselves as objects.</li>
+                <li><b>Epistemological commitment</b> — the possible <i>states of knowledge</i> a language allows about each fact. Propositional/first-order/temporal logic: true/false/unknown. Probability theory: a <b>degree of belief</b> in [0,1]. Fuzzy logic: a known interval value (degree of truth).</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M4 Q2 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q2</span>
+              <span class="qbody">
+                <span class="qtext">Explain the syntax and semantics of first-order logic — models, symbols, terms, and atomic/complex sentences.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Models for First-Order Logic</h4>
+              <ul>
+                <li>A model has a nonempty <b>domain</b> of objects, plus <b>relations</b> (sets of tuples of related objects) and <b>functions</b> (relations where each input maps to exactly one output).</li>
+                <li><i>Example:</i> objects {Richard, John, Richard's leg, John's leg, crown}; binary relation Brother = {⟨Richard,John⟩, ⟨John,Richard⟩}; unary properties Person, King, Crown; unary function LeftLeg.</li>
+              </ul>
+
+              <h4>Symbols &amp; Interpretation</h4>
+              <ul>
+                <li>Three kinds of symbols: <b>constant symbols</b> (stand for objects, e.g. Richard), <b>predicate symbols</b> (stand for relations, e.g. Brother), <b>function symbols</b> (stand for functions, e.g. LeftLeg).</li>
+                <li>An <b>interpretation</b> fixes exactly which object/relation/function each symbol refers to. The number of possible models/interpretations is unbounded, so checking entailment by enumerating models (as in propositional logic) is <b>infeasible</b> for FOL.</li>
+              </ul>
+
+              <h4>Terms</h4>
+              <ul>
+                <li>A <b>term</b> is a logical expression referring to an object — a constant symbol, or a <b>complex term</b> like a function symbol applied to argument terms, e.g. LeftLeg(John).</li>
+                <li>A term with no variables is a <b>ground term</b>.</li>
+              </ul>
+
+              <h4>Atomic &amp; Complex Sentences</h4>
+              <ul>
+                <li><b>Atomic sentence:</b> a predicate symbol (optionally) applied to a list of terms, e.g. Brother(Richard, John) — true if the relation holds among the referenced objects.</li>
+                <li><b>Complex sentences</b> are built with the same connectives as propositional logic: ¬, ∧, ∨, ⇒, ⇔ — e.g. King(Richard) ∨ King(John).</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M4 Q3 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q3</span>
+              <span class="qbody">
+                <span class="qtext">Explain universal and existential quantifiers in first-order logic, nested quantifiers, and the connection between ∀ and ∃ via De Morgan's rules.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Universal Quantification (∀)</h4>
+              <ul>
+                <li>∀x P is true iff P holds for <b>every</b> object x in the domain. <i>Example:</i> "All kings are persons" → ∀x King(x) ⇒ Person(x).</li>
+                <li><b>⇒</b> is the natural connective with ∀ — using ∧ instead (∀x King(x) ∧ Person(x)) wrongly asserts that <b>everything</b> is a king and a person.</li>
+              </ul>
+
+              <h4>Existential Quantification (∃)</h4>
+              <ul>
+                <li>∃x P is true iff P holds for <b>at least one</b> object x. <i>Example:</i> "John has a crown on his head" → ∃x Crown(x) ∧ OnHead(x, John).</li>
+                <li><b>∧</b> is the natural connective with ∃ — using ⇒ instead gives a very <b>weak</b> statement, satisfied even by irrelevant objects.</li>
+              </ul>
+
+              <h4>Nested Quantifiers</h4>
+              <ul>
+                <li>Order matters: ∀x ∃y Loves(x,y) means <b>"everybody loves somebody"</b> (each person loves at least one, possibly different, person).</li>
+                <li>∃y ∀x Loves(x,y) means <b>"someone is loved by everyone"</b> — a single y loved by all x. These are very different statements.</li>
+              </ul>
+
+              <h4>Connection via Negation (De Morgan's Rules)</h4>
+              <ul>
+                <li>∀ is a conjunction over the universe; ∃ is a disjunction — so they obey De Morgan-style dualities:</li>
+              </ul>
+              <div class="ex-box">∀x ¬P ≡ ¬∃x P  &nbsp;&nbsp; ¬∀x P ≡ ∃x ¬P  &nbsp;&nbsp; ∀x P ≡ ¬∃x ¬P  &nbsp;&nbsp; ∃x P ≡ ¬∀x ¬P</div>
+              <p>We don't strictly need both ∀ and ∃ — just as we don't need both ∧ and ∨ — since each can be expressed via the other plus negation. The <b>equality symbol</b> (=) is also part of FOL syntax, used to assert/deny that two terms refer to the same object (e.g., Father(John) = Henry).</p>
+            </div>
+          </details>
+
+          <!-- M4 Q4 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q4</span>
+              <span class="qbody">
+                <span class="qtext">Explain assertions and queries in first-order logic (TELL/ASK/ASKVARS) and illustrate the kinship domain with example axioms.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Assertions &amp; Queries</h4>
+              <ul>
+                <li><b>TELL(KB, sentence)</b> — adds an assertion to the knowledge base, e.g. TELL(KB, King(John)).</li>
+                <li><b>ASK(KB, query)</b> — returns true/false for a query logically entailed by the KB.</li>
+                <li><b>ASKVARS(KB, query)</b> — for queries with free variables, returns a stream of <b>substitutions/bindings</b> (e.g., {x/John}, {x/Richard}) rather than a flat true/false — usually reserved for KBs of Horn clauses.</li>
+              </ul>
+
+              <h4>The Kinship Domain</h4>
+              <ul>
+                <li>Objects are people; unary predicates Male, Female; binary predicates Parent, Sibling, Brother, Spouse, Grandparent, etc.</li>
+                <li><b>Axioms (definitions),</b> of the form ∀x,y P(x,y) ⇔ …:</li>
+              </ul>
+              <ul>
+                <li>One's mother is one's female parent: ∀m,c Mother(c)=m ⇔ Female(m) ∧ Parent(m,c).</li>
+                <li>Male/Female are disjoint: ∀x Male(x) ⇔ ¬Female(x).</li>
+                <li>Parent/Child are inverses: ∀p,c Parent(p,c) ⇔ Child(c,p).</li>
+                <li>Grandparent = parent of a parent: ∀g,c Grandparent(g,c) ⇔ ∃p Parent(g,p) ∧ Parent(p,c).</li>
+                <li>Sibling = another child of one's parents: ∀x,y Sibling(x,y) ⇔ x≠y ∧ ∃p Parent(p,x) ∧ Parent(p,y).</li>
+              </ul>
+              <div class="ex-box"><b>Axioms vs. theorems:</b> axioms define predicates; <b>theorems</b> are sentences entailed by the axioms (e.g., siblinghood being symmetric). Not every axiom is a complete definition — some (like Person) are only partially specified, plus plain ground facts (e.g., Male(Jim)) describe specific problem instances.</div>
+            </div>
+          </details>
+
+          <!-- M4 Q5 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q5</span>
+              <span class="qbody">
+                <span class="qtext">Show how the Wumpus World can be represented in first-order logic — percepts, actions, and the environment's axioms.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Percepts &amp; Actions</h4>
+              <ul>
+                <li>A percept is a 5-element vector with a time stamp: Percept([Stench, Breeze, Glitter, None, None], 5).</li>
+                <li>Actions are logical terms: Turn(Right), Turn(Left), Forward, Shoot, Grab, Climb.</li>
+                <li>The agent picks the best action by the query <b>ASKVARS(∃a BestAction(a, 5))</b>, which returns a binding like {a/Grab}.</li>
+              </ul>
+
+              <h4>Perception Rules</h4>
+              <p>Raw percepts imply state facts, e.g.: ∀t,s,g,m,c Percept([s,Breeze,g,m,c], t) ⇒ Breeze(t). Simple reflex behaviour can be encoded directly: ∀t Glitter(t) ⇒ BestAction(Grab, t).</p>
+
+              <h4>Environment Axioms</h4>
+              <ul>
+                <li><b>Adjacency:</b> ∀x,y,a,b Adjacent([x,y],[a,b]) ⇔ (x=a ∧ (y=b−1 ∨ y=b+1)) ∨ (y=b ∧ (x=a−1 ∨ x=a+1)).</li>
+                <li><b>Location over time:</b> At(Agent, s, t) means the agent is at square s at time t; objects occupy only one place at a time: ∀x,s1,s2,t At(x,s1,t) ∧ At(x,s2,t) ⇒ s1=s2.</li>
+                <li><b>Breeze inference:</b> ∀s,t At(Agent,s,t) ∧ Breeze(t) ⇒ Breezy(s).</li>
+                <li><b>Pit-deduction axiom</b> (a single FOL axiom replaces many propositional ones): ∀s Breezy(s) ⇔ ∃r Adjacent(r,s) ∧ Pit(r).</li>
+                <li><b>Arrow tracking:</b> ∀t HaveArrow(t+1) ⇔ (HaveArrow(t) ∧ ¬Action(Shoot,t)).</li>
+              </ul>
+              <div class="ex-box">This shows FOL's expressive advantage: a <b>single quantified axiom</b> (like the Breezy/Pit one) captures what would need a separate propositional sentence for every square.</div>
+            </div>
+          </details>
+
+          <!-- M4 Q6 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q6</span>
+              <span class="qbody">
+                <span class="qtext">Explain Universal and Existential Instantiation, propositionalization, and why entailment in FOL is only semi-decidable.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Universal Instantiation (UI)</h4>
+              <ul>
+                <li>From ∀v α, we can infer SUBST({v/g}, α) for <b>any ground term g</b> — a universally quantified sentence can be replaced by the set of all its possible instantiations.</li>
+                <li><i>Example:</i> from ∀x King(x)∧Greedy(x)⇒Evil(x), substituting {x/John} and {x/Richard} gives two ground implications.</li>
+              </ul>
+
+              <h4>Existential Instantiation (EI)</h4>
+              <ul>
+                <li>From ∃v α, infer SUBST({v/k}, α) where <b>k is a brand-new constant</b> (a <b>Skolem constant</b>) not used elsewhere in the KB — a special case of <b>skolemization</b>.</li>
+                <li><i>Example:</i> ∃x Crown(x) ∧ OnHead(x, John) gives Crown(C₁) ∧ OnHead(C₁, John), for a fresh C₁.</li>
+              </ul>
+
+              <h4>Reduction to Propositional Inference (Propositionalization)</h4>
+              <ul>
+                <li>Apply UI with <b>all possible ground-term substitutions</b> from the KB's vocabulary, discard the universally quantified sentence, then treat ground atomic sentences as propositional symbols and run a propositional algorithm.</li>
+                <li><b>Disadvantage:</b> if the KB has a function symbol, the set of ground terms is <b>infinite</b> (e.g., F(F(F(...A...)))), so propositional algorithms struggle with an infinitely large sentence set.</li>
+              </ul>
+
+              <h4>Semi-Decidability</h4>
+              <p>Entailment in first-order logic is <b>semi-decidable</b>: algorithms exist that correctly say "yes" for every entailed sentence, but <b>no algorithm</b> is guaranteed to also say "no" for every non-entailed sentence (it may run forever instead).</p>
+            </div>
+          </details>
+
+          <!-- M4 Q7 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q7</span>
+              <span class="qbody">
+                <span class="qtext">Explain Generalized Modus Ponens, the unification algorithm, and efficient storage/retrieval (predicate indexing, subsumption lattice) for FOL inference.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Generalized Modus Ponens</h4>
+              <ul>
+                <li>A <b>lifted</b> version of Modus Ponens: if a substitution θ makes each premise pᵢ′ identical to a premise pᵢ of an implication, the conclusion q can be inferred (with θ applied).</li>
+                <li><b>Advantage over propositionalization:</b> it makes <b>only the substitutions needed</b> for a particular inference, rather than instantiating every possible ground term.</li>
+              </ul>
+
+              <h4>Unification</h4>
+              <ul>
+                <li><b>UNIFY(p, q) = θ</b> finds a substitution θ such that SUBST(θ,p) = SUBST(θ,q), if one exists.</li>
+                <li><i>Example:</i> UNIFY(Knows(John,x), Knows(John,Jane)) = {x/Jane}.</li>
+                <li><b>Standardizing apart:</b> rename variables so the same variable isn't forced to equal two different things (e.g., UNIFY(Knows(John,x), Knows(x,Elizabeth)) fails unless one x is renamed).</li>
+                <li>When multiple unifiers exist, the <b>most general unifier (MGU)</b> is preferred — it makes the fewest commitments.</li>
+                <li>The unification algorithm recursively compares expressions element by element, building up θ, and uses an <b>occur-check</b> to prevent a variable from unifying with a term containing itself.</li>
+              </ul>
+
+              <h4>Efficient Storage &amp; Retrieval</h4>
+              <ul>
+                <li><b>STORE(s)</b> adds a sentence; <b>FETCH(q)</b> returns unifiers with KB sentences. Naive linear scan + UNIFY is inefficient.</li>
+                <li><b>Predicate indexing:</b> bucket facts by predicate symbol (e.g., all Knows facts together) so unification is attempted only where there's a chance of success.</li>
+                <li><b>Subsumption lattice:</b> for KBs with many clauses per predicate, index facts under multiple keys; the lattice's child nodes come from one substitution of a parent, and the "highest" common descendant of two nodes is given by their MGU.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M4 Q8 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q8</span>
+              <span class="qbody">
+                <span class="qtext">Explain forward chaining with first-order definite clauses, using the "Colonel West" crime example. Discuss the efficiency issues and how they are addressed.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>First-Order Definite Clauses</h4>
+              <p>A definite clause is atomic or an implication whose antecedent is a conjunction of positive literals and whose consequent is a single positive literal; variables are assumed universally quantified.</p>
+
+              <h4>The Crime Example</h4>
+              <p>"It is a crime for an American to sell weapons to hostile nations… Nono has missiles, sold to it by Colonel West, who is American." Key rules: American(x)∧Weapon(y)∧Sells(x,y,z)∧Hostile(z)⇒Criminal(x); Missile(x)⇒Weapon(x); Enemy(x,America)⇒Hostile(x); plus facts Owns(Nono,M1), Missile(M1), American(West), Enemy(Nono,America).</p>
+
+              <h4>FOL-FC-ASK</h4>
+              <ul>
+                <li>Starting from known facts, triggers <b>all</b> rules whose premises are satisfied, adding conclusions to the known facts; repeats until the query is answered or no new facts arise.</li>
+                <li><i>Crime example:</i> iteration 1 derives Sells(West,M1,Nono), Weapon(M1), Hostile(Nono); iteration 2 derives <b>Criminal(West)</b>.</li>
+                <li><b>Sound</b> (pure Generalized Modus Ponens) and <b>complete</b> for definite-clause KBs.</li>
+              </ul>
+
+              <h4>Efficiency Issues &amp; Fixes</h4>
+              <ul>
+                <li><b>Pattern matching cost</b> (conjunct ordering problem — closely related to CSPs): order conjuncts to minimize cost, e.g. the <b>most-constrained-variable</b> heuristic.</li>
+                <li><b>Redundant rechecking:</b> fixed by <b>incremental forward chaining</b> — only check a rule if its premise includes a conjunct that <b>newly</b> unified in the previous iteration, since every new fact must derive from at least one fact from the last round.</li>
+                <li><b>Irrelevant facts:</b> avoided via (a) backward chaining instead, (b) restricting to a relevant subset of rules, or (c) <b>magic sets</b> — rewriting rules with an extra conjunct (e.g., Magic(x)) derived from the goal, so only relevant bindings are explored.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M4 Q9 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q9</span>
+              <span class="qbody">
+                <span class="qtext">Explain backward chaining in first-order logic and discuss Prolog as a logic programming language, including its efficient implementation.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Backward Chaining</h4>
+              <ul>
+                <li>Works <b>backward from the goal</b>, chaining through rules to find supporting known facts — <b>FOL-BC-ASK</b> takes the first goal, finds clauses whose head unifies with it, and recursively adds the body as new sub-goals; a goal that unifies with a known fact is solved with no sub-goals.</li>
+                <li>The <b>proof tree</b> for "Criminal(West)" branches into its four conjuncts (American(West), Weapon(y), Sells(West,M1,z), Hostile(z)) read depth-first, left to right, with bindings propagating to later conjuncts.</li>
+              </ul>
+
+              <h4>Prolog (Logic Programming)</h4>
+              <ul>
+                <li>Programs are sets of definite clauses (head <code>:-</code> body); uses uppercase for variables, lowercase for constants; execution is <b>depth-first backward chaining</b>.</li>
+                <li><b>Negation as failure:</b> <code>not P</code> succeeds if the system fails to prove P.</li>
+                <li>Prolog's <code>=</code> is unification-based equality, not full logical equality; and the <b>occur-check is omitted</b> for speed (at the cost of soundness in rare cases).</li>
+              </ul>
+
+              <h4>Efficient Implementation</h4>
+              <ul>
+                <li><b>Interpreted</b> mode runs FOL-BC-ASK directly; uses <b>choice points</b> (a "promise" to generate remaining answers later) and a <b>trail</b> to undo variable bindings on backtracking.</li>
+                <li><b>Compiled</b> mode translates to an intermediate form like the <b>Warren Abstract Machine (WAM)</b>; <b>continuations</b> package up what to do next when a goal succeeds.</li>
+                <li><b>Parallelism:</b> <b>OR-parallelism</b> (different matching clauses explored in parallel) and <b>AND-parallelism</b> (conjuncts solved in parallel, harder due to needing consistent variable bindings).</li>
+                <li><b>Redundant inference / infinite loops</b> can occur with naive clause ordering (e.g., a path-finding program looping forever) — clause order matters a great deal in Prolog.</li>
+                <li><b>Constraint Logic Programming (CLP)</b> generalizes Prolog by allowing variables to be <b>constrained</b> rather than fully bound — e.g., <code>triangle(3,4,Z)</code> yields the constraint 1 ≤ Z ≤ 7 instead of failing.</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- M4 Q10 -->
+          <details class="card" style="border-left-color:var(--m4)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m4)">Q10</span>
+              <span class="qbody">
+                <span class="qtext">Explain the conversion of first-order sentences to CNF, the first-order resolution rule, and the completeness of resolution.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Converting to CNF (6 Steps)</h4>
+              <ul>
+                <li><b>1. Eliminate implications:</b> α⇒β becomes ¬α∨β.</li>
+                <li><b>2. Move negation inward:</b> standard rules plus ¬∀x P ≡ ∃x ¬P and ¬∃x P ≡ ∀x ¬P.</li>
+                <li><b>3. Standardize variables:</b> rename so each quantifier uses a distinct variable.</li>
+                <li><b>4. Skolemize:</b> replace each existentially quantified variable with a <b>Skolem function</b> of all universally quantified variables in whose scope it falls (a plain Skolem constant only works if there's no enclosing ∀).</li>
+                <li><b>5. Drop universal quantifiers</b> (all remaining variables are implicitly universal).</li>
+                <li><b>6. Distribute ∨ over ∧</b> to reach clause form.</li>
+              </ul>
+
+              <h4>The Resolution Rule</h4>
+              <ul>
+                <li>A lifted version of propositional resolution: literals are complementary if one <b>unifies</b> with the negation of the other. Two clauses resolve via UNIFY(lᵢ, mⱼ) = θ, producing a new clause with the complementary literals removed and θ applied.</li>
+                <li><b>Proof procedure:</b> convert (KB ∧ ¬α) to CNF, then repeatedly resolve clause pairs until either no new clauses arise (KB ⊭ α) or the <b>empty clause</b> is derived (KB ⊨ α) — proof by refutation.</li>
+                <li><i>Example (Colonel West):</i> resolving ¬Criminal(West) against the Criminal rule, then chasing through American(West), Weapon/Missile, Sells, and Hostile/Enemy clauses derives the empty clause, proving Criminal(West).</li>
+              </ul>
+
+              <h4>Completeness of Resolution</h4>
+              <ul>
+                <li>Relies on three ideas: the <b>Herbrand universe</b> H<sub>S</sub> (all ground terms constructible from S's functions/constants), <b>saturation</b> of a clause set with respect to a set of ground terms, and the <b>Herbrand base</b> (saturation w.r.t. the Herbrand universe).</li>
+                <li><b>Proof chain:</b> any sentence set S → clausal form → (if unsatisfiable) <b>Herbrand's theorem</b> says some finite set of ground instances is unsatisfiable → the <b>ground resolution theorem</b> says resolution can find a contradiction in that finite set → the <b>lifting lemma</b> shows this corresponds to an actual first-order resolution proof.</li>
+                <li><b>Dealing with equality:</b> <b>paramodulation</b> is an inference rule that substitutes equal terms (t₁=t₂) directly during resolution.</li>
+                <li><b>Theorem provers</b> (e.g., OTTER) use resolution cleverly via strategies like <b>unit preference</b> (prefer short clauses), <b>set of support</b>, <b>input resolution</b>, and <b>subsumption</b> (discard clauses more specific than an existing one).</li>
+              </ul>
+            </div>
+          </details>
+
+        </div>
+
+        <footer class="note">BAD402 · Artificial Intelligence — Module 4 of 5 · Source: course notes (vtucode.in)</footer>
+      </section>
+
+      <section class="module-section" id="m5">
+        <div class="eyebrow" style="color:var(--m5)">BAD402 · Artificial Intelligence</div>
+        <h1 class="title" style="color:var(--m5)">Module 5 — Quantifying Uncertainty &amp; Expert Systems</h1>
+        <p class="subtitle">Ten exam-style 10-mark questions, each with a structured answer built for recall. Tap a question to open it.</p>
+        <div class="meta-row">
+          <span class="chip">10 Questions</span>
+          <span class="chip">10 Marks Each</span>
+          <span class="chip">VTU Pattern</span>
+        </div>
+
+        <div class="qlist">
+
+          <!-- M5 Q1 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q1</span>
+              <span class="qbody">
+                <span class="qtext">Explain why agents need to handle uncertainty. Discuss the drawbacks of the logical/belief-state approach, the qualification problem, and how rational decisions are defined under uncertainty.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Why Uncertainty Arises</h4>
+              <ul>
+                <li>Agents face <b>uncertainty</b> due to partial observability, nondeterminism, or both — an agent may never know for certain what state it's in or where a sequence of actions will leave it.</li>
+                <li>Problem-solving and logical agents handle this by keeping a <b>belief state</b> (the set of all possible world states it might be in) and a <b>contingency plan</b> covering every eventuality.</li>
+              </ul>
+
+              <h4>Drawbacks of the Logical Approach</h4>
+              <ul>
+                <li>Interpreting partial sensor information forces the agent to consider <b>every logically possible explanation</b>, however unlikely — producing huge, complex belief-state representations.</li>
+                <li>A correct contingent plan covering every eventuality can grow <b>arbitrarily large</b> and must consider arbitrarily unlikely contingencies.</li>
+                <li>Sometimes <b>no plan is guaranteed</b> to achieve the goal, yet the agent must still act and somehow compare unguaranteed plans.</li>
+              </ul>
+
+              <h4>The Qualification Problem</h4>
+              <p>In the automated-taxi example, plan A90 (leave 90 minutes early) cannot be logically guaranteed to reach the airport on time — only concluded "as long as the car doesn't break down, no accidents occur, the plane doesn't leave early, ... ." None of these conditions can be deduced for sure, so the plan's success can't be logically inferred — this unsolved gap is the <b>qualification problem</b>.</p>
+
+              <h4>Rational Decisions Under Uncertainty</h4>
+              <ul>
+                <li>A90 is still the <b>right thing to do</b> because, out of all executable plans, it is expected to <b>maximize the agent's performance measure</b> (expectation relative to the agent's knowledge).</li>
+                <li>The agent's knowledge cannot guarantee outcomes, but can provide a <b>degree of belief</b> that they will be achieved.</li>
+              </ul>
+              <div class="ex-box">The <b>rational decision</b> depends on both the relative importance of various goals <i>and</i> the likelihood that, and degree to which, they will be achieved — this is the bridge from logic to probability theory.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q2 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q2</span>
+              <span class="qbody">
+                <span class="qtext">Using the dental-diagnosis example, explain why propositional logic fails to capture judgmental domains. Explain laziness, theoretical ignorance, and practical ignorance, and contrast the ontological/epistemological commitments of logic versus probability theory.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Why the Logical Rule Breaks Down</h4>
+              <ul>
+                <li><code>Toothache ⇒ Cavity</code> is wrong — not every toothache patient has a cavity (could be gum disease, an abscess, etc.).</li>
+                <li>Fixing it by listing every possible cause (<code>Toothache ⇒ Cavity ∨ GumProblem ∨ Abscess ...</code>) requires an <b>almost unlimited list</b> of conditions.</li>
+                <li>Turning it into a causal rule, <code>Cavity ⇒ Toothache</code>, is also wrong — not all cavities cause pain; the left side would need every qualification for a cavity to actually hurt.</li>
+              </ul>
+
+              <h4>Three Reasons Logic Fails Here</h4>
+              <ul>
+                <li><b>Laziness:</b> it is too much work to list the complete set of antecedents/consequents needed for an exceptionless rule, and too hard to use such rules even if listed.</li>
+                <li><b>Theoretical ignorance:</b> medical science simply has no complete theory for the domain.</li>
+                <li><b>Practical ignorance:</b> even with all the rules known, a particular patient's status may be uncertain because not all tests have been (or can be) run.</li>
+              </ul>
+
+              <h4>Ontological vs. Epistemological Commitment</h4>
+              <ul>
+                <li><b>Ontological commitment</b> (what exists) is the <b>same</b> for logic and probability — the world is composed of facts that do or do not hold.</li>
+                <li><b>Epistemological commitment</b> differs: a logical agent believes each sentence true, false, or has no opinion; a <b>probabilistic agent</b> has a numerical <b>degree of belief</b> between 0 (certainly false) and 1 (certainly true).</li>
+              </ul>
+              <div class="ex-box">Probability summarizes the uncertainty that comes from laziness and ignorance, thereby <b>solving the qualification problem</b> — e.g., "the probability that a patient with a toothache has a cavity is 0.8" is a statement about a <b>knowledge state</b>, not the real world (the patient either has a cavity or doesn't).</div>
+            </div>
+          </details>
+
+          <!-- M5 Q3 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q3</span>
+              <span class="qbody">
+                <span class="qtext">Explain basic probability notation: sample space, random variables, propositions, probability distributions, and the full joint probability distribution.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Sample Space &amp; Probability Model</h4>
+              <ul>
+                <li>The <b>sample space</b> Ω is the set of all possible worlds, which are <b>mutually exclusive and exhaustive</b>; ω denotes one particular possible world.</li>
+                <li>A <b>probability model</b> assigns P(ω) to every ω, with 0 ≤ P(ω) ≤ 1 and Σ<sub>ω∈Ω</sub> P(ω) = 1.</li>
+                <li>The probability of a <b>proposition</b> φ (a set of possible worlds, called an <b>event</b>) is the sum of probabilities of the worlds where it holds: P(φ) = Σ<sub>ω∈φ</sub> P(ω).</li>
+              </ul>
+
+              <h4>Random Variables &amp; Domains</h4>
+              <ul>
+                <li>Variables are called <b>random variables</b>, named with an uppercase letter; each has a <b>domain</b> of possible values (e.g., Total ∈ {2,...,12}).</li>
+                <li>A <b>Boolean random variable</b> has domain {true, false}; by convention A=true is abbreviated <i>a</i>, and A=false is abbreviated ¬a.</li>
+                <li>Domains can be finite, infinite discrete, or continuous; ordered domains also allow inequalities (e.g., NumberOfAtomsInUniverse ≥ 10⁷⁰).</li>
+              </ul>
+
+              <h4>Probability Distributions</h4>
+              <ul>
+                <li><b>P(Weather)</b> (bold P) denotes a <b>vector</b> giving the probability of every value of Weather, in a predefined order — this is called a <b>probability distribution</b>.</li>
+                <li>For continuous variables, a <b>probability density function</b> (pdf) is used, e.g. P(NoonTemp=x) = Uniform<sub>[18C,26C]</sub>(x); density values are not probabilities themselves (probability of any exact point is 0).</li>
+                <li><b>P(Weather, Cavity)</b> denotes the <b>joint probability distribution</b> over combinations of both variables (a 4×2 table here).</li>
+              </ul>
+              <div class="ex-box">A <b>possible world</b> is defined as an assignment of values to <i>all</i> random variables under consideration. The <b>full joint probability distribution</b> over all variables completely determines the probability model — every proposition's probability can, in principle, be computed by summing over it.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q4 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q4</span>
+              <span class="qbody">
+                <span class="qtext">State the axioms of probability (Kolmogorov's axioms) and the inclusion–exclusion principle. Explain de Finetti's betting argument for why a rational agent's beliefs must obey these axioms.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Basic Axioms</h4>
+              <ul>
+                <li>Every possible world has probability between 0 and 1, and the total probability of all possible worlds is 1: 0 ≤ P(ω) ≤ 1, Σ<sub>ω∈Ω</sub> P(ω) = 1.</li>
+                <li>From this it follows that P(¬a) = 1 − P(a).</li>
+              </ul>
+
+              <h4>Inclusion–Exclusion Principle</h4>
+              <div class="ex-box">P(a ∨ b) = P(a) + P(b) − P(a ∧ b)</div>
+              <p>Summing the cases where a holds and the cases where b holds double-counts their overlap, so P(a ∧ b) must be subtracted. Together with Equation (13.1), this pair is known as <b>Kolmogorov's axioms</b>.</p>
+
+              <h4>De Finetti's Betting Argument</h4>
+              <ul>
+                <li>If an agent has a degree of belief in a, it should be willing to state odds at which it is indifferent to betting for or against a.</li>
+                <li><b>De Finetti's theorem:</b> if Agent 1's stated degrees of belief <b>violate the probability axioms</b>, Agent 2 can always construct a combination of bets that guarantees Agent 1 loses money, <b>no matter the outcome</b>.</li>
+                <li><i>Example:</i> with P(a)=0.4, P(b)=0.3, P(a∨b)=0.8 (which violates the axioms since 0.4+0.3−P(a∧b) should equal 0.8 only if P(a∧b)=−0.1, impossible), Agent 2 can bet $4 on a, $3 on b, $2 on ¬(a∨b) and win in <b>every</b> outcome.</li>
+              </ul>
+              <div class="ex-box">Every action (including inaction) is effectively a bet, so the betting game is not contrived — it models the decision-making situation an agent is unavoidably in at every moment. Hence, <b>no rational agent can hold beliefs that violate the axioms of probability.</b></div>
+            </div>
+          </details>
+
+          <!-- M5 Q5 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q5</span>
+              <span class="qbody">
+                <span class="qtext">Explain inference using the full joint probability distribution. Define marginalization, conditioning, and normalization, and illustrate with the Toothache/Cavity/Catch example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>The Full Joint Table</h4>
+              <p>For Boolean variables Toothache, Cavity, Catch, the full joint distribution is a 2×2×2 table whose 8 entries sum to 1. Any proposition's probability is found by summing the entries where it holds — e.g. P(cavity ∨ toothache) = 0.28.</p>
+
+              <h4>Marginalization (Summing Out)</h4>
+              <div class="ex-box">P(Y) = Σ<sub>z∈Z</sub> P(Y, z)</div>
+              <p>Adding entries over all values of the "other" variables gives the <b>marginal probability</b> of Y — e.g. summing the Cavity=true row gives P(cavity) = 0.2. A variant using the product rule, <b>conditioning</b>, sums over P(Y|z)P(z) instead of joint values.</p>
+
+              <h4>Computing Conditional Probabilities</h4>
+              <ul>
+                <li>P(cavity | toothache) = P(cavity∧toothache)/P(toothache) = (0.108+0.012)/(0.108+0.012+0.016+0.064) = <b>0.6</b>.</li>
+                <li>The denominator 1/P(toothache) is the same for every value of Cavity, so it can be treated as a <b>normalization constant α</b>: P(Cavity|toothache) = α P(Cavity,toothache).</li>
+              </ul>
+
+              <h4>General Inference Procedure</h4>
+              <div class="ex-box">P(X | e) = α P(X, e) = α Σ<sub>y</sub> P(X, e, y)</div>
+              <p>where E is the evidence variables (with observed values e) and Y the remaining unobserved variables. This lets us compute a query even without knowing P(e) directly — just sum the relevant joint entries and <b>normalize</b> so they add to 1.</p>
+              <div class="ex-box"><b>Scalability problem:</b> for n Boolean variables, the table needs O(2ⁿ) space and O(2ⁿ) time — impractical beyond small n. The full joint table is a theoretical foundation, not a practical reasoning tool.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q6 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q6</span>
+              <span class="qbody">
+                <span class="qtext">Explain absolute independence and conditional independence between random variables. Show how they help decompose the full joint distribution, and describe the naive Bayes model.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Absolute Independence</h4>
+              <div class="ex-box">P(X | Y) = P(X)  or  P(Y | X) = P(Y)  or  P(X, Y) = P(X)P(Y)</div>
+              <p><i>Example:</i> Weather is independent of dental variables — adding Weather to the joint distribution lets P(Toothache,Catch,Cavity,Weather) = P(Toothache,Catch,Cavity)·P(Weather), decomposing a 32-entry table into an 8-entry and a 4-entry table. Independence assertions are rare across <b>entire</b> sets of variables, but very useful when available (e.g. n independent coin flips: 2ⁿ entries collapse into n single-variable distributions).</p>
+
+              <h4>Conditional Independence</h4>
+              <div class="ex-box">P(X, Y | Z) = P(X | Z) P(Y | Z)</div>
+              <p>Toothache and Catch are <b>not</b> absolutely independent (a catch suggests a cavity, which suggests a toothache) but <b>are</b> conditionally independent <b>given Cavity</b> — each is directly caused by the cavity but has no direct effect on the other. This lets us decompose:</p>
+              <div class="ex-box">P(Toothache, Catch, Cavity) = P(Toothache|Cavity) P(Catch|Cavity) P(Cavity)</div>
+              <p>shrinking 7 independent numbers down to 5; for n symptoms conditionally independent given one cause, the representation grows as <b>O(n)</b> instead of O(2ⁿ). Cavity is said to <b>separate</b> Toothache and Catch.</p>
+
+              <h4>Naive Bayes Model</h4>
+              <div class="ex-box">P(Cause, Effect₁,...,Effect<sub>n</sub>) = P(Cause) Π<sub>i</sub> P(Effect<sub>i</sub> | Cause)</div>
+              <p>A single cause directly influences several effects assumed conditionally independent given the cause — called "naive" because this independence assumption is often only approximately true, yet such models (also called <b>Bayesian classifiers</b>, or jokingly "idiot Bayes") frequently work surprisingly well in practice.</p>
+            </div>
+          </details>
+
+          <!-- M5 Q7 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q7</span>
+              <span class="qbody">
+                <span class="qtext">Derive Bayes' rule. Explain the causal vs. diagnostic directions of conditional probability and illustrate with the meningitis/stiff-neck example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Deriving Bayes' Rule</h4>
+              <p>From the two forms of the product rule, P(a∧b)=P(a|b)P(b) and P(a∧b)=P(b|a)P(a), equating right-hand sides and dividing by P(a) gives:</p>
+              <div class="ex-box">P(b | a) = P(a | b) P(b) / P(a)</div>
+              <p>The general multivalued form is P(Y|X) = P(X|Y)P(Y)/P(X), and conditioned on background evidence e: P(Y|X,e) = P(X|Y,e)P(Y|e)/P(X|e).</p>
+
+              <h4>Causal vs. Diagnostic Direction</h4>
+              <ul>
+                <li>P(effect | cause) quantifies the <b>causal</b> direction (e.g., a doctor's knowledge of P(symptoms|disease)).</li>
+                <li>P(cause | effect) is the <b>diagnostic</b> direction we usually want (P(disease|symptoms)) — Bayes' rule converts one into the other.</li>
+              </ul>
+
+              <h4>Worked Example</h4>
+              <p>Given P(s|m)=0.7 (stiff neck given meningitis), P(m)=1/50000, P(s)=0.01:</p>
+              <div class="ex-box">P(m | s) = P(s|m)P(m)/P(s) = (0.7 × 1/50000) / 0.01 = 0.0014</div>
+              <p>So fewer than 1 in 700 patients with a stiff neck actually have meningitis — even though a stiff neck is strongly indicated by meningitis (0.7), the low <b>prior</b> probability of meningitis keeps the posterior small.</p>
+
+              <h4>Why Use Bayes' Rule At All?</h4>
+              <div class="ex-box">Causal knowledge P(s|m) is <b>more robust</b> than diagnostic knowledge P(m|s): if a meningitis epidemic raises P(m), the diagnostic probability P(m|s) should rise proportionally, which Bayes' rule automatically reflects — whereas a directly-measured P(m|s) from before the epidemic would be stale.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q8 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q8</span>
+              <span class="qbody">
+                <span class="qtext">Explain how Bayes' rule is used to combine multiple pieces of evidence. Derive the conditional-independence formulation for the toothache-and-catch example.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>The Scaling Problem</h4>
+              <ul>
+                <li>Naively reformulating P(Cavity|toothache∧catch) = α P(toothache∧catch|Cavity) P(Cavity) requires knowing the conditional probability of the <b>conjunction</b> of evidence for every value of Cavity.</li>
+                <li>With n possible evidence variables, this needs <b>2ⁿ</b> conditional probabilities — no better than using the full joint distribution.</li>
+              </ul>
+
+              <h4>Using Conditional Independence</h4>
+              <p>Toothache and Catch are not independent in general, but <b>are</b> conditionally independent given Cavity (each is a direct effect of the cavity, with no direct link between them):</p>
+              <div class="ex-box">P(toothache ∧ catch | Cavity) = P(toothache | Cavity) P(catch | Cavity)</div>
+              <p>Substituting into the Bayes' rule expression:</p>
+              <div class="ex-box">P(Cavity | toothache ∧ catch) = α P(toothache|Cavity) P(catch|Cavity) P(Cavity)</div>
+
+              <h4>Why This Matters</h4>
+              <ul>
+                <li>Now the information needed is the same as for inference using <b>each piece of evidence separately</b>: the prior P(Cavity) and one conditional probability per effect, given its cause.</li>
+                <li>This is exactly the <b>naive Bayes</b> pattern — a single cause (Cavity) with multiple conditionally-independent effects (Toothache, Catch).</li>
+              </ul>
+              <div class="ex-box">This is one of the most important developments in AI history: decomposing large probabilistic domains into <b>weakly connected subsets</b> via conditional independence lets probabilistic systems scale, since such assertions are far more commonly available than full absolute independence.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q9 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q9</span>
+              <span class="qbody">
+                <span class="qtext">Revisit the Wumpus World using probability. Explain how the agent computes the probability that squares [1,3] and [2,2] contain pits, using the Known/Frontier/Other decomposition.</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Setting Up the Problem</h4>
+              <ul>
+                <li>After breezes are felt in both [1,2] and [2,1], pure logical inference cannot tell which of [1,3], [2,2], [3,1] is safer — a logical agent would have to guess randomly.</li>
+                <li>Random variables: P<sub>i,j</sub> = true iff square [i,j] has a pit (prior probability 0.2 per square, independent); B<sub>i,j</sub> = true iff square [i,j] is breezy (observed only for visited squares).</li>
+                <li>Prior over a full pit configuration: P(P1,1,...,P4,4) = Π P(Pi,j) — for n pits, this is 0.2ⁿ × 0.8<sup>16−n</sup>.</li>
+              </ul>
+
+              <h4>Known, Frontier, and Other</h4>
+              <ul>
+                <li><b>Known:</b> visited squares, confirmed pit-free.</li>
+                <li><b>Frontier:</b> unvisited squares adjacent to visited ones (here [2,2] and [3,1]) — directly relevant to the breeze evidence.</li>
+                <li><b>Other:</b> all remaining unknown squares, irrelevant to the query — the observed breezes are <b>conditionally independent</b> of Other, given Known, Frontier, and the query variable.</li>
+              </ul>
+
+              <h4>Simplifying the Summation</h4>
+              <p>Using this conditional independence, the Other variables can be summed out completely (their probabilities sum to 1), leaving:</p>
+              <div class="ex-box">P(P1,3 | known, b) = α' P(P1,3) Σ<sub>frontier</sub> P(b | known, P1,3, frontier) P(frontier)</div>
+              <p>Only 4 frontier models remain instead of 4096 — a dramatic reduction. P(b|known,P1,3,frontier) is 1 if the frontier configuration is consistent with the observed breezes, 0 otherwise.</p>
+
+              <h4>Result</h4>
+              <ul>
+                <li>Computing over the consistent models gives <b>P([1,3] has a pit) ≈ 0.31</b> (same for [3,1] by symmetry).</li>
+                <li>A similar calculation gives <b>P([2,2] has a pit) ≈ 0.86</b>.</li>
+              </ul>
+              <div class="ex-box">The probabilistic agent should clearly avoid [2,2] — information the purely logical agent from Chapter 7 could not extract, since logic can only say a pit in [2,2] is <i>unknown</i>, not <i>how likely</i> it is.</div>
+            </div>
+          </details>
+
+          <!-- M5 Q10 -->
+          <details class="card" style="border-left-color:var(--m5)">
+            <summary class="card-head">
+              <span class="qtag" style="color:var(--m5)">Q10</span>
+              <span class="qbody">
+                <span class="qtext">Explain expert systems — how domain knowledge is represented as production rules, the role of shells, the importance of explanation (TEIRESIAS), and knowledge acquisition systems (MOLE and SALT).</span>
+                <span class="marks-pill">10 Marks</span>
+              </span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </summary>
+            <div class="answer">
+              <h4>Representing Domain Knowledge</h4>
+              <ul>
+                <li>Expert systems solve problems normally requiring human "experts," using a substantial <b>domain knowledge base</b>, one or more <b>reasoning mechanisms</b>, and a way to <b>explain</b> their conclusions to users.</li>
+                <li>The most widely used representation is a set of <b>production rules</b>, often coupled with a frame system defining the objects the rules reference.</li>
+                <li><i>R1/XCON</i> (DEC VAX configuration) uses rules with no numeric certainty, since enough expertise exists to state exactly the correct action; it does a <b>design</b> task using forward chaining, so only one good solution is needed.</li>
+                <li><i>PROSPECTOR</i> (mineral exploration) attaches two confidence numbers per rule — how strongly evidence presence supports the conclusion, and how strongly its absence discourages it.</li>
+                <li><i>DESIGN ADVISOR</i> (chip-design critiquing) uses an <code>UNLESS</code> clause and a justification-based <b>truth maintenance system</b> to revise its model when a designer rejects its advice.</li>
+              </ul>
+
+              <h4>Reasoning with the Knowledge</h4>
+              <p>MYCIN used <b>backward chaining</b> to discover organisms then reasoned forward to a treatment; R1 used <b>forward chaining</b>. Whichever direction, expert systems exploit the rule-based reasoning mechanisms covered earlier in the course.</p>
+
+              <h4>Expert System Shells</h4>
+              <ul>
+                <li>Since most expert systems separate the <b>interpreter</b> (reasoning engine) from <b>domain-specific knowledge</b>, the interpreter can be reused as a <b>shell</b> for new domains — e.g., EMYCIN ("Empty MYCIN") derived from MYCIN.</li>
+                <li>Modern shells support rules, frames, truth maintenance, and crucially an <b>interface to integrate</b> with corporate databases and conventional programs.</li>
+              </ul>
+
+              <h4>Explanation: TEIRESIAS</h4>
+              <ul>
+                <li>TEIRESIAS was the first program to support explanation and knowledge acquisition, as a front end to MYCIN.</li>
+                <li>It answers <b>WHY</b> questions ("why do you need to know that?") and <b>HOW</b> questions ("how did you establish that?") by tracing MYCIN's backward-chaining <b>goal tree</b> — its key premise is that program behaviour can be explained simply by referring to a trace of its execution.</li>
+              </ul>
+
+              <h4>Knowledge Acquisition: MOLE &amp; SALT</h4>
+              <ul>
+                <li><b>MOLE</b> builds heuristic-classification (diagnosis) systems using the <i>cover-and-differentiate</i> method: it elicits symptoms, possible explanations, and <b>covering</b> and <b>differentiating</b> knowledge from the expert, building an influence network, then refines it by watching the system solve sample problems and asking the expert to correct wrong diagnoses.</li>
+                <li><b>SALT</b> supports <i>propose-and-revise</i> design tasks (e.g., elevator design): it builds a dependency network of <b>contributes-to</b>, <b>constrains</b>, and <b>suggests-revision-of</b> links, using heuristics such as requiring every node to have a contributing link and disallowing dependency loops, and can answer <b>WHY-NOT</b> and <b>WHAT-IF</b> questions.</li>
+              </ul>
+              <div class="ex-box">Knowledge transfer from expert to system is <b>gradual and iterative</b> — the expert rarely gets the knowledge complete on the first pass — which is why inductive/learning approaches (like META-DENDRAL inducing rules from mass-spectrometry data, or decision-tree induction) are attractive alternatives to pure interview-based knowledge engineering.</div>
+            </div>
+          </details>
+
+        </div>
+
+        <footer class="note">BAD402 · Artificial Intelligence — Module 5 of 5 · Source: course notes (Quantifying Uncertainty &amp; Expert Systems)</footer>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.module-section');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-module');
+      tabs.forEach(t => t.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(target).classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+</script>
+
+</body>
+</html>
