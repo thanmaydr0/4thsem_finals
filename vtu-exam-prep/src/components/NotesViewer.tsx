@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   BookOpen,
   FileText,
-  Image as ImageIcon,
   Download,
   X,
   ZoomIn,
@@ -12,8 +11,9 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronRight,
-  Terminal,
   ExternalLink,
+  Upload,
+  Trash2,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
@@ -26,49 +26,166 @@ interface NotesViewerProps {
 }
 
 export default function NotesViewer({ subjectId, modules }: NotesViewerProps) {
-  const { selectedModuleNumber } = useStudyStore();
-
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
 
-  const bucketName = `${subjectId}-notes`;
+  const { selectedModuleNumber } = useStudyStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [myUploadedNotes, setMyUploadedNotes] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const bucketName =
+    subjectId === 'ada'
+      ? 'ada_notes'
+      : subjectId === 'dbms'
+      ? 'dbms-notes'
+      : 'ai_notes';
 
   useEffect(() => {
-    async function fetchNotes() {
-      setLoading(true);
+    const localNotes = JSON.parse(localStorage.getItem('my_uploaded_notes') || '[]');
+    setMyUploadedNotes(localNotes);
+  }, []);
 
-      let query = supabase
-        .from('notes')
-        .select('*')
-        .eq('subject_id', subjectId)
-        .order('sort_order');
+  const fetchNotes = useCallback(async () => {
+    setLoading(true);
 
-      if (selectedModuleNumber !== null) {
-        const selectedMod = modules.find(
-          (m) => m.module_number === selectedModuleNumber
-        );
-        if (selectedMod) {
-          // Fetch module-specific + general notes (module_id is null)
-          query = query.or(`module_id.eq.${selectedMod.id},module_id.is.null`);
-        }
+    let query = supabase
+      .from('notes')
+      .select('*')
+      .eq('subject_id', subjectId)
+      .not('module_id', 'is', null)
+      .order('sort_order');
+
+    if (selectedModuleNumber !== null) {
+      const selectedMod = modules.find(
+        (m) => m.module_number === selectedModuleNumber
+      );
+      if (selectedMod) {
+        query = query.eq('module_id', selectedMod.id);
       }
-
-      const { data } = await query;
-      setNotes(data ?? []);
-      setLoading(false);
     }
 
-    fetchNotes();
+    const { data } = await query;
+    setNotes(data ?? []);
+    setLoading(false);
   }, [subjectId, selectedModuleNumber, modules]);
+
+  useEffect(() => {
+    // Clear notes while fetching to prevent showing stale notes
+    setNotes([]);
+    fetchNotes();
+  }, [fetchNotes]);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Reset input
+    e.target.value = '';
+
+    // Validate size (15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      alert('File size exceeds 15MB limit.');
+      return;
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const validExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+    if (!validExts.includes(ext)) {
+      alert('Invalid file type.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const isPdf = ext === 'pdf';
+      const fileType = isPdf ? 'pdf' : 'image';
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      
+      const modPrefix = selectedModuleNumber ? `m${selectedModuleNumber}` : 'general';
+      const fileName = `${subjectId}-${modPrefix}-${Date.now()}-${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const selectedMod = selectedModuleNumber 
+        ? modules.find((m) => m.module_number === selectedModuleNumber)
+        : null;
+
+      const { data: dbNote, error: dbError } = await supabase.from('notes').insert({
+        subject_id: subjectId,
+        module_id: selectedMod ? selectedMod.id : null,
+        title: file.name,
+        file_path: fileName,
+        file_type: fileType,
+      }).select().single();
+
+      if (dbError) throw dbError;
+
+      // Ensure toast appears
+      // @ts-ignore
+      if (window.toast) window.toast(`Note uploaded to ${selectedMod ? `Module ${selectedModuleNumber}` : 'General'} and sent for AI processing.`);
+      else alert(`Note uploaded successfully. AI processing in background.`);
+      
+      if (dbNote) {
+        // Trigger RAG Edge Function asynchronously
+        supabase.functions.invoke('process-note', {
+          body: {
+            noteId: dbNote.id,
+            filePath: fileName,
+            subjectId: subjectId,
+            bucketName: bucketName,
+            fileType: fileType
+          }
+        }).catch(err => console.error("RAG processing failed:", err));
+
+        // Track that THIS user uploaded this note so they can delete it later
+        const updatedNotes = [...myUploadedNotes, dbNote.id];
+        setMyUploadedNotes(updatedNotes);
+        localStorage.setItem('my_uploaded_notes', JSON.stringify(updatedNotes));
+      }
+      
+      fetchNotes();
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      alert('Failed to upload note: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleDelete(note: Note) {
+    if (!confirm(`Are you sure you want to delete "${note.title}"?`)) return;
+
+    try {
+      // Remove from storage
+      await supabase.storage.from(bucketName).remove([note.file_path]);
+
+      // Remove from db
+      await supabase.from('notes').delete().eq('id', note.id);
+
+      // Remove from local tracker
+      const updatedNotes = myUploadedNotes.filter(id => id !== note.id);
+      setMyUploadedNotes(updatedNotes);
+      localStorage.setItem('my_uploaded_notes', JSON.stringify(updatedNotes));
+
+      fetchNotes();
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      alert('Failed to delete note: ' + err.message);
+    }
+  }
 
   function getPublicUrl(filePath: string) {
     const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
     return data.publicUrl;
   }
 
-  // Split into general and module-specific
-  const generalNotes = notes.filter((n) => n.module_id === null);
+  // Module-specific notes
   const moduleNotes = notes.filter((n) => n.module_id !== null);
 
   if (loading) {
@@ -93,52 +210,82 @@ export default function NotesViewer({ subjectId, modules }: NotesViewerProps) {
 
   if (notes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-5 py-12">
-        <BookOpen size={28} className="text-muted-foreground mb-3" />
-        <p className="text-sm text-muted mb-3">
+      <div className="flex flex-col items-center justify-center h-full text-center px-5 py-12 relative">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
+          className="hidden"
+        />
+        <BookOpen size={48} className="text-muted-foreground/30 mb-4" />
+        <p className="text-sm font-medium text-foreground mb-1">No notes yet</p>
+        <p className="text-xs text-muted-foreground mb-6 max-w-[200px]">
           {selectedModuleNumber
-            ? `No notes uploaded for Module ${selectedModuleNumber} yet.`
-            : 'No notes found for this subject.'}
+            ? `No notes for Module ${selectedModuleNumber} yet. Upload your handwritten notes to get started.`
+            : 'No notes found for this subject. Upload your handwritten notes to get started.'}
         </p>
-        <div className="text-xs text-muted-foreground bg-card border border-border rounded-lg p-3 text-left w-full">
-          <div className="flex items-center gap-1.5 mb-1.5 text-muted">
-            <Terminal size={12} />
-            <span className="font-medium">Upload notes via CLI:</span>
-          </div>
-          <code className="text-accent text-xs leading-relaxed block">
-            node scripts/upload-notes.mjs<br />
-            --subject={subjectId}<br />
-            --folder="path/to/notes"
-          </code>
-        </div>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Upload size={16} />
+          )}
+          {uploading ? 'Uploading...' : 'Upload Note'}
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="p-3 space-y-4">
-      {/* General Notes Section */}
-      {generalNotes.length > 0 && (
-        <NoteSection
-          title="General"
-          notes={generalNotes}
-          onSelect={setActiveNote}
+    <div className="p-3 flex flex-col h-full relative">
+      <div className="flex items-center justify-between mb-4 shrink-0 px-1">
+        <h3 className="text-sm font-semibold text-foreground">
+          {selectedModuleNumber ? `Module ${selectedModuleNumber} Notes` : 'All Notes'}
+        </h3>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
+          className="hidden"
         />
-      )}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-accent/10 text-accent rounded-md text-xs font-medium hover:bg-accent/20 transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Upload size={14} />
+          )}
+          {uploading ? 'Uploading...' : 'Upload'}
+        </button>
+      </div>
 
-      {/* Module Notes Section */}
-      {moduleNotes.length > 0 && (
-        <NoteSection
-          title={
-            selectedModuleNumber
-              ? `Module ${selectedModuleNumber}`
-              : 'All Modules'
-          }
-          notes={moduleNotes}
-          onSelect={setActiveNote}
-          defaultExpanded
-        />
-      )}
+      <div className="space-y-4 overflow-y-auto flex-1 pb-10">
+        {/* Module Notes Section */}
+        {moduleNotes.length > 0 && (
+          <NoteSection
+            title={
+              selectedModuleNumber
+                ? `Module ${selectedModuleNumber}`
+                : 'All Modules'
+            }
+            notes={moduleNotes}
+            onSelect={setActiveNote}
+            onDelete={handleDelete}
+            myUploadedNotes={myUploadedNotes}
+            getPublicUrl={getPublicUrl}
+            defaultExpanded
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -149,11 +296,17 @@ function NoteSection({
   title,
   notes,
   onSelect,
+  onDelete,
+  myUploadedNotes,
+  getPublicUrl,
   defaultExpanded = true,
 }: {
   title: string;
   notes: Note[];
   onSelect: (note: Note) => void;
+  onDelete: (note: Note) => void;
+  myUploadedNotes: string[];
+  getPublicUrl: (path: string) => string;
   defaultExpanded?: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -180,29 +333,68 @@ function NoteSection({
 
       {expanded && (
         <div className="space-y-1.5">
-          {notes.map((note) => (
-            <button
-              key={note.id}
-              onClick={() => onSelect(note)}
-              className="flex items-center gap-3 w-full p-2.5 rounded-lg bg-card border border-border hover:border-border-hover hover:bg-card-hover transition-colors group text-left"
-            >
-              <div className="shrink-0 w-8 h-8 rounded flex items-center justify-center bg-accent-subtle/30">
-                {note.file_type === 'pdf' ? (
-                  <FileText size={15} className="text-accent" />
-                ) : (
-                  <ImageIcon size={15} className="text-accent" />
-                )}
+          {notes.map((note) => {
+            const publicUrl = getPublicUrl(note.file_path);
+            const isPdf = note.file_type === 'pdf';
+            const shortName = note.title.length > 30 ? note.title.substring(0, 30) + '...' : note.title;
+
+            return (
+              <div
+                key={note.id}
+                className="flex items-center gap-3 w-full p-2.5 rounded-lg bg-card border border-border hover:border-border-hover hover:bg-card-hover transition-colors group text-left relative overflow-hidden"
+              >
+                <div 
+                  className="shrink-0 w-10 h-10 rounded flex items-center justify-center bg-accent-subtle/30 overflow-hidden cursor-pointer"
+                  onClick={() => onSelect(note)}
+                  title="Click to view inside app"
+                >
+                  {isPdf ? (
+                    <FileText size={18} className="text-red-500" />
+                  ) : (
+                    <img src={publicUrl} alt="Thumbnail" className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div 
+                  className="min-w-0 flex-1 cursor-pointer"
+                  onClick={() => onSelect(note)}
+                >
+                  <p className="text-sm font-medium truncate group-hover:text-accent transition-colors" title={note.title}>
+                    {shortName}
+                  </p>
+                  <span className={clsx(
+                    "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                    isPdf ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
+                  )}>
+                    {note.file_type}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-colors"
+                    title="View file in new tab"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                  {myUploadedNotes.includes(note.id) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(note);
+                      }}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                      title="Delete note"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate group-hover:text-accent transition-colors">
-                  {note.title}
-                </p>
-                <p className="text-xs text-muted uppercase">
-                  {note.file_type}
-                </p>
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

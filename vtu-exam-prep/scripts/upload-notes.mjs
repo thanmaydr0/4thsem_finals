@@ -23,15 +23,15 @@ const subjectArg = args.find(a => a.startsWith('--subject='));
 const folderArg = args.find(a => a.startsWith('--folder='));
 
 if (!subjectArg || !folderArg) {
-  console.error("Usage: node scripts/upload-notes.mjs --subject=<ada|ai> --folder=<path/to/notes>");
+  console.error("Usage: node scripts/upload-notes.mjs --subject=<ada|ai|dbms> --folder=<path/to/notes>");
   process.exit(1);
 }
 
 const subjectId = subjectArg.split('=')[1].toLowerCase();
 const folderPath = path.resolve(folderArg.split('=')[1]);
 
-if (!['ada', 'ai'].includes(subjectId)) {
-  console.error("Error: --subject must be 'ada' or 'ai'");
+if (!['ada', 'ai', 'dbms'].includes(subjectId)) {
+  console.error("Error: --subject must be 'ada', 'ai', or 'dbms'");
   process.exit(1);
 }
 

@@ -13,13 +13,24 @@ import {
 import clsx from 'clsx';
 import { supabase } from '../lib/supabase';
 import { sendChatMessage } from '../lib/edgeFunctions';
+import { sendDBMSChatMessage } from '../lib/openai';
 import { useStudyStore } from '../hooks/useStudyStore';
 import type { ChatMessage } from '../types';
+
+type ChatMode = 'tutor' | 'notes';
 
 const QUICK_ACTIONS = [
   { label: 'Explain this simply', icon: Sparkles },
   { label: 'Give me a worked solution', icon: BookOpen },
   { label: 'Quiz me on this topic', icon: HelpCircle },
+];
+
+const DBMS_QUICK_ACTIONS = [
+  { label: '⭐ High frequency topics', icon: Sparkles },
+  { label: 'Explain ER to Relational mapping', icon: BookOpen },
+  { label: 'Walk me through 2PL', icon: HelpCircle },
+  { label: 'Solve a normalization example', icon: Sparkles },
+  { label: 'MongoDB CRUD syntax', icon: BookOpen },
 ];
 
 export default function AIAssistantPanel() {
@@ -37,9 +48,19 @@ export default function AIAssistantPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>('tutor');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Context injection: Pre-fill input when question context is set
+  useEffect(() => {
+    if (chatQuestionContext && activeSubject === 'dbms') {
+      setInputValue(`Explain how to answer: ${chatQuestionContext}`);
+      clearChatContext();
+      inputRef.current?.focus();
+    }
+  }, [chatQuestionContext, activeSubject, clearChatContext]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -99,16 +120,30 @@ export default function AIAssistantPanel() {
         }
       } catch (e) {}
 
-      const result = await sendChatMessage({
-        sessionId: chatSessionId,
-        message: messageText,
-        subjectId: activeSubject,
-        questionContext: chatQuestionContext,
-        studentName,
-      });
+      let result;
+      
+      if (activeSubject === 'dbms') {
+        const dbmsRes = await sendDBMSChatMessage({
+          sessionId: chatSessionId,
+          message: messageText,
+          questionContext: chatQuestionContext,
+          studentName: null,
+          useRag: chatMode === 'notes',
+        });
+        
+        result = dbmsRes;
+      } else {
+        result = await sendChatMessage({
+          sessionId: chatSessionId,
+          message: messageText,
+          subjectId: activeSubject,
+          questionContext: chatQuestionContext,
+          studentName,
+        });
+      }
 
       // Update session ID if newly created
-      if (!chatSessionId && result.sessionId) {
+      if (!chatSessionId) {
         setChatSession(result.sessionId);
       }
 
@@ -160,9 +195,60 @@ export default function AIAssistantPanel() {
     : null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* Clear Chat Button (Absolute Top Right) */}
+      <div className="absolute top-2 right-2 flex gap-1 z-10">
+        <button
+          onClick={handleNewChat}
+          className="p-2 text-muted hover:text-foreground transition-colors"
+          title="Clear chat history"
+        >
+          <RotateCcw size={14} />
+        </button>
+      </div>
+
+      {/* Mode Toggle */}
+      {activeSubject === 'dbms' && (
+        <div className="px-3 py-2 border-b border-border shrink-0 bg-background/50 backdrop-blur-sm z-10">
+          <div className="flex p-1 bg-surface rounded-lg border border-border">
+            <button
+              onClick={() => {
+                if (chatMode !== 'tutor') {
+                  setChatMode('tutor');
+                  handleNewChat();
+                }
+              }}
+              className={clsx(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center justify-center gap-2",
+                chatMode === 'tutor' 
+                  ? "bg-accent text-accent-foreground shadow" 
+                  : "text-muted hover:text-foreground"
+              )}
+            >
+              <Sparkles size={14} /> Tutor
+            </button>
+            <button
+              onClick={() => {
+                if (chatMode !== 'notes') {
+                  setChatMode('notes');
+                  handleNewChat();
+                }
+              }}
+              className={clsx(
+                "flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center justify-center gap-2",
+                chatMode === 'notes' 
+                  ? "bg-emerald-500 text-white shadow" 
+                  : "text-muted hover:text-foreground"
+              )}
+            >
+              <BookOpen size={14} /> Doc Chat
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Question Context Banner */}
-      {truncatedContext && (
+      {truncatedContext && chatMode === 'tutor' && (
         <div className="flex items-start gap-2 px-3 py-2.5 bg-accent-subtle/20 border-b border-accent/15 shrink-0">
           <Pin size={13} className="text-accent mt-0.5 shrink-0" />
           <p className="text-xs text-accent/80 leading-snug flex-1 min-w-0">
@@ -183,14 +269,37 @@ export default function AIAssistantPanel() {
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <Sparkles size={28} className="text-muted-foreground mb-3" />
-            <p className="text-sm text-muted mb-1">
-              Ask anything about{' '}
-              {activeSubject === 'ada' ? 'ADA' : 'AI'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              I'll help you understand concepts and prepare for your exam.
-            </p>
+            {chatMode === 'notes' ? (
+              <>
+                <BookOpen size={28} className="text-emerald-500/50 mb-3" />
+                <p className="text-sm font-semibold text-emerald-500 mb-1">
+                  Chat with Notes
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  I will answer your questions strictly based on the PDFs and handwritten notes you uploaded.
+                </p>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-left max-w-[240px] mx-auto">
+                  <p className="text-xs text-emerald-500/80 mb-2 font-medium">How it works:</p>
+                  <ol className="text-[10px] text-muted-foreground space-y-1 list-decimal list-inside">
+                    <li>Open the Notes tab on the left</li>
+                    <li>Click <span className="text-emerald-400 font-semibold">Upload</span> to add your PDFs or images</li>
+                    <li>The AI instantly reads and indexes them</li>
+                    <li>Ask questions here and the AI will cite your notes!</li>
+                  </ol>
+                </div>
+              </>
+            ) : (
+              <>
+                <Sparkles size={28} className="text-muted-foreground mb-3" />
+                <p className="text-sm text-muted mb-1">
+                  Ask anything about{' '}
+                  {activeSubject === 'ada' ? 'ADA' : activeSubject === 'dbms' ? 'DBMS' : 'AI'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  I'll help you understand concepts and prepare for your exam.
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -236,10 +345,10 @@ export default function AIAssistantPanel() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions (only when there's a question context and no messages yet) */}
-      {chatQuestionContext && messages.length === 0 && !isLoading && (
+      {/* Quick Actions (only when there's a question context and no messages yet, or just no messages yet for DBMS) */}
+      {messages.length === 0 && !isLoading && (
         <div className="flex items-center gap-1.5 px-3 pb-2 shrink-0 flex-wrap">
-          {QUICK_ACTIONS.map((action) => (
+          {(activeSubject === 'dbms' ? DBMS_QUICK_ACTIONS : chatQuestionContext ? QUICK_ACTIONS : []).map((action) => (
             <button
               key={action.label}
               onClick={() => handleSend(action.label)}

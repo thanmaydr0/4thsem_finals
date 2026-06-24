@@ -25,6 +25,11 @@ export interface Question {
   youtube_url: string | null;
   youtube_title: string | null;
   youtube_channel: string | null;
+  youtube_links?: {
+    gate_smashers?: string;
+    neso_academy?: string;
+    fallback?: string;
+  } | null;
   topic_tags: string[] | null;
   sort_order: number | null;
 }
@@ -69,4 +74,4 @@ export interface ModuleWithStats extends Module {
   avgFrequency: number | null; // only meaningful for ADA
 }
 
-export type SubjectId = 'ada' | 'ai';
+export type SubjectId = 'ada' | 'ai' | 'dbms';

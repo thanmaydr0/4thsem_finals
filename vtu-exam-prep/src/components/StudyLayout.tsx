@@ -24,7 +24,7 @@ import AIAssistantPanel from './AIAssistantPanel';
 import NotesViewer from './NotesViewer';
 import ShortcutsModal from './ShortcutsModal';
 import FeedbackModal from './FeedbackModal';
-import type { ModuleWithStats, SubjectId } from '../types';
+import type { ModuleWithStats, SubjectId, Note } from '../types';
 
 interface StudyLayoutProps {
   subjectId: SubjectId;
@@ -63,6 +63,8 @@ export default function StudyLayout({
   const [modules, setModules] = useState<ModuleWithStats[]>([]);
   const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   const [progressCount, setProgressCount] = useState({ reviewed: 0, total: 0 });
+  const [previousPapers, setPreviousPapers] = useState<Note[]>([]);
+  const [mobileView, setMobileView] = useState<'questions' | 'notes' | 'chat'>('questions');
 
   const mainRef = useRef<HTMLElement>(null);
 
@@ -133,13 +135,24 @@ export default function StudyLayout({
         case 'f':
           toggleFocusMode();
           break;
-        case '?':
-          setShowShortcutsModal(true);
+        case 'ArrowRight':
+          if (subjectId === 'dbms' && selectedModuleNumber !== null && selectedModuleNumber < 5) {
+            setSelectedModule(selectedModuleNumber + 1);
+          } else if (subjectId === 'dbms' && selectedModuleNumber === null) {
+            setSelectedModule(1);
+          }
+          break;
+        case 'ArrowLeft':
+          if (subjectId === 'dbms' && selectedModuleNumber !== null && selectedModuleNumber > 1) {
+            setSelectedModule(selectedModuleNumber - 1);
+          }
           break;
         case 'Escape':
           setShowShortcutsModal(false);
-          // If in focus mode, exit it? Optional. Let's just exit focus mode on escape.
           setFocusMode(false);
+          if (subjectId === 'dbms') {
+            window.location.href = '/';
+          }
           break;
       }
     }
@@ -150,10 +163,37 @@ export default function StudyLayout({
     setRightTab,
     setRightSidebarOpen,
     setSelectedModule,
+    selectedModuleNumber,
+    subjectId,
     toggleFocusMode,
     setShowShortcutsModal,
     setFocusMode,
   ]);
+
+  // Document Title
+  useEffect(() => {
+    let title = "VTU Exam Prep";
+    if (subjectId === 'ada') title = "ADA — VTU Exam Prep";
+    if (subjectId === 'ai') title = "AI — VTU Exam Prep";
+    if (subjectId === 'dbms') title = "DBMS BCS403 — VTU Exam Prep";
+    document.title = title;
+  }, [subjectId]);
+
+  // Session Storage Persistence for DBMS module
+  useEffect(() => {
+    if (subjectId === 'dbms') {
+      const stored = sessionStorage.getItem(`dbms_last_module`);
+      if (stored !== null) {
+        setSelectedModule(stored === 'null' ? null : parseInt(stored, 10));
+      }
+    }
+  }, [subjectId, setSelectedModule]);
+
+  useEffect(() => {
+    if (subjectId === 'dbms' && selectedModuleNumber !== undefined) {
+      sessionStorage.setItem(`dbms_last_module`, String(selectedModuleNumber));
+    }
+  }, [selectedModuleNumber, subjectId]);
 
   // Set active subject on mount
   useEffect(() => {
@@ -197,7 +237,18 @@ export default function StudyLayout({
       setModules(modulesWithStats);
     }
 
+    async function fetchPapers() {
+      const { data } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('subject_id', subjectId)
+        .is('module_id', null)
+        .order('title');
+      if (data) setPreviousPapers(data);
+    }
+
     fetchModules();
+    fetchPapers();
   }, [subjectId]);
 
   // Fetch progress stats
@@ -422,17 +473,24 @@ export default function StudyLayout({
                     Previous Papers
                   </h3>
                   <div className="space-y-1">
-                    {['july2024.pdf', 'jan2025.pdf', 'july2025.pdf', 'jan2026.pdf'].map((file) => (
-                      <a
-                        key={file}
-                        href={`/papers/${subjectId}/${file}`}
-                        download
-                        className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground/80 hover:bg-accent-subtle/20 hover:text-accent rounded-lg transition-colors group"
-                      >
-                        <Download size={14} className="text-muted group-hover:text-accent transition-colors shrink-0" />
-                        <span className="truncate capitalize">{file.replace('.pdf', '')}</span>
-                      </a>
-                    ))}
+                    {previousPapers.map((paper) => {
+                      const { data } = supabase.storage
+                        .from(`${subjectId}-notes`)
+                        .getPublicUrl(paper.file_path);
+                      
+                      return (
+                        <a
+                          key={paper.id}
+                          href={data.publicUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground/80 hover:bg-accent-subtle/20 hover:text-accent rounded-lg transition-colors group"
+                        >
+                          <Download size={14} className="text-muted group-hover:text-accent transition-colors shrink-0" />
+                          <span className="truncate capitalize">{paper.title.replace('.pdf', '')}</span>
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               </nav>
@@ -505,7 +563,12 @@ export default function StudyLayout({
         )}
 
         {/* ── Center Panel ── */}
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-4 sm:p-6 relative">
+        <main ref={mainRef} className={clsx(
+          "flex-1 overflow-y-auto relative",
+          // On mobile for dbms, only show if mobileView is 'questions'
+          subjectId === 'dbms' && mobileView !== 'questions' ? 'hidden lg:block' : 'block',
+          "p-4 sm:p-6 pb-24 lg:pb-6"
+        )}>
           {focusMode && (
             <button
               onClick={() => setFocusMode(false)}
@@ -522,7 +585,10 @@ export default function StudyLayout({
         {!focusMode && (
           <button
             onClick={handleToggleRightSidebar}
-            className="hidden lg:flex items-center justify-center w-6 shrink-0 border-l border-border hover:bg-card transition-colors group z-10"
+            className={clsx(
+              "hidden lg:flex items-center justify-center w-6 shrink-0 border-l border-border hover:bg-card transition-colors group z-10",
+              subjectId === 'dbms' && 'hidden' // hide for DBMS if bottom nav replaces it? No, bottom nav is for mobile.
+            )}
             title={rightSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {rightSidebarOpen ? (
@@ -540,7 +606,7 @@ export default function StudyLayout({
         )}
 
         {/* Mobile notes toggle (floating) */}
-        {!focusMode && (
+        {!focusMode && subjectId !== 'dbms' && (
           <button
             onClick={handleToggleRightSidebar}
             className={clsx(
@@ -553,7 +619,7 @@ export default function StudyLayout({
         )}
 
         {/* Right Sidebar Overlay Backdrop (mobile) */}
-        {!focusMode && rightSidebarOpen && (
+        {!focusMode && rightSidebarOpen && subjectId !== 'dbms' && (
           <div
             className="fixed inset-0 bg-background/50 backdrop-blur-sm z-30 lg:hidden"
             onClick={handleToggleRightSidebar}
@@ -565,11 +631,18 @@ export default function StudyLayout({
           <aside
             className={clsx(
               'panel-transition flex flex-col border-l border-border bg-surface/95 lg:bg-surface/50 shrink-0 overflow-hidden',
-              'fixed lg:relative inset-y-0 right-0 z-40 lg:z-auto h-full',
-              rightSidebarOpen ? 'w-[min(320px,85vw)] min-w-[min(320px,85vw)] translate-x-0' : 'w-[min(320px,85vw)] translate-x-full lg:w-0 lg:min-w-0 lg:translate-x-0'
+              // On desktop: fixed width or 0
+              'lg:relative inset-y-0 right-0 z-40 lg:z-auto h-full',
+              // On mobile: if dbms, take full width when active. if not dbms, use overlay.
+              subjectId === 'dbms' 
+                ? (mobileView !== 'questions' ? 'w-full translate-x-0' : 'hidden lg:flex w-[min(320px,85vw)] lg:translate-x-0')
+                : (rightSidebarOpen ? 'fixed w-[min(320px,85vw)] translate-x-0' : 'fixed w-[min(320px,85vw)] translate-x-full lg:w-0 lg:min-w-0 lg:translate-x-0'),
+              // Force width on desktop
+              subjectId === 'dbms' && 'lg:w-[320px] lg:min-w-[320px] lg:translate-x-0',
+              subjectId !== 'dbms' && rightSidebarOpen && 'lg:w-[320px] lg:min-w-[320px] lg:translate-x-0'
             )}
           >
-          {rightSidebarOpen && (
+          {(subjectId === 'dbms' || rightSidebarOpen) && (
             <div className="flex flex-col h-full">
               {/* Tabs */}
               <div className="flex border-b border-border shrink-0">
@@ -610,7 +683,46 @@ export default function StudyLayout({
           )}
           </aside>
         )}
+
+        {/* ── Mobile Bottom Navigation (DBMS Only) ── */}
+        {!focusMode && subjectId === 'dbms' && (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-50 px-2 py-2 flex items-center justify-around pb-[env(safe-area-inset-bottom)]">
+            <button
+              onClick={() => setMobileView('questions')}
+              className={clsx(
+                "flex flex-col items-center p-2 rounded-xl text-[10px] font-medium transition-all w-16",
+                mobileView === 'questions' ? "text-accent bg-accent/10" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <BookOpen size={20} className="mb-1" />
+              Questions
+            </button>
+            <button
+              onClick={() => { setMobileView('notes'); setRightTab('notes'); }}
+              className={clsx(
+                "flex flex-col items-center p-2 rounded-xl text-[10px] font-medium transition-all w-16",
+                mobileView === 'notes' ? "text-accent bg-accent/10" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Layers size={20} className="mb-1" />
+              Notes
+            </button>
+            <button
+              onClick={() => { setMobileView('chat'); setRightTab('chat'); }}
+              className={clsx(
+                "flex flex-col items-center p-2 rounded-xl text-[10px] font-medium transition-all w-16",
+                mobileView === 'chat' ? "text-accent bg-accent/10" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <MessageSquare size={20} className="mb-1" />
+              AI Chat
+            </button>
+          </div>
+        )}
       </div>
+
+      <ShortcutsModal />
+      <FeedbackModal />
     </div>
   );
 }

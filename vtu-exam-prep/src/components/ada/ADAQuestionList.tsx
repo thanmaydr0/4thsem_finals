@@ -12,12 +12,14 @@ import {
   Tag,
   CalendarDays,
   Award,
+  Camera,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '../../lib/supabase';
 import { useStudyStore } from '../../hooks/useStudyStore';
 import { useDebouncedCallback } from '../../hooks/useDebounce';
 import type { Question, StudyProgress } from '../../types';
+import TestMeModal from '../TestMeModal';
 
 type SortMode = 'frequency' | 'recency' | 'sequence';
 
@@ -247,6 +249,7 @@ function QuestionCard({
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesText, setNotesText] = useState(progress?.notes_text ?? '');
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [testMeOpen, setTestMeOpen] = useState(false);
 
   // Sync notes text when progress changes externally
   useEffect(() => {
@@ -426,8 +429,26 @@ function QuestionCard({
 
         {/* Action Row */}
         <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-border/50">
-          {/* YouTube Button */}
-          {q.youtube_url ? (
+          {/* YouTube Button(s) */}
+          {q.youtube_links && Object.keys(q.youtube_links).length > 0 ? (
+            <div className="flex gap-2 flex-wrap">
+              {q.youtube_links.gate_smashers && (
+                <a href={q.youtube_links.gate_smashers} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-medium">
+                  <Play size={15} /> 🎥 Gate Smashers
+                </a>
+              )}
+              {q.youtube_links.neso_academy && (
+                <a href={q.youtube_links.neso_academy} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-medium">
+                  <Play size={15} /> 🎥 Neso Academy
+                </a>
+              )}
+              {!q.youtube_links.gate_smashers && !q.youtube_links.neso_academy && q.youtube_links.fallback && (
+                <a href={q.youtube_links.fallback} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-medium">
+                  <Play size={15} /> 🎥 Recommended Video
+                </a>
+              )}
+            </div>
+          ) : q.youtube_url ? (
             <a
               href={q.youtube_url}
               target="_blank"
@@ -456,6 +477,15 @@ function QuestionCard({
           >
             <MessageSquare size={14} />
             Discuss with AI
+          </button>
+
+          {/* Test Me (AI Grading) */}
+          <button
+            onClick={() => setTestMeOpen(true)}
+            className="inline-flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-colors text-xs font-medium"
+          >
+            <Camera size={14} />
+            Test Me
           </button>
 
           {/* My Notes Toggle */}
@@ -499,6 +529,15 @@ function QuestionCard({
           </div>
         )}
       </div>
+
+      {testMeOpen && (
+        <TestMeModal
+          isOpen={testMeOpen}
+          onClose={() => setTestMeOpen(false)}
+          question={q}
+          subjectName={q.subject_id === 'dbms' ? 'Database Management Systems' : q.subject_id === 'ada' ? 'Design and Analysis of Algorithms' : 'Artificial Intelligence'}
+        />
+      )}
     </div>
   );
 }
