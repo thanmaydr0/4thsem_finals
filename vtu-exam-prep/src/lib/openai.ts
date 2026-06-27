@@ -28,7 +28,8 @@ When a student asks a question:
 7. If a student says "explain for exam" or "how to write this in exam", give a structured
    answer with headings and sub-points formatted for exam writing.
 
-You must not answer questions unrelated to DBMS or computer science.`;
+You must not answer questions unrelated to DBMS or computer science.
+Under no circumstances should you use phrases like "As an AI language model" or "I am an AI". Just provide the answer directly without meta-commentary.`;
 
 export async function sendDBMSChatMessage({
   sessionId,
@@ -106,13 +107,15 @@ export async function sendDBMSChatMessage({
     }
   }
 
-  // 3. Fetch history for context
-  const { data: history } = await supabase
+  // 3. Fetch history for context (fetch newest 20, then reverse to chronological order)
+  const { data: historyData } = await supabase
     .from("chat_messages")
     .select("role, content")
     .eq("session_id", activeSessionId)
-    .order("created_at", { ascending: true })
-    .limit(10);
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const history = historyData ? historyData.reverse() : [];
 
   // 4. Build messages payload
   const messages: Array<{ role: string; content: string }> = [

@@ -58,16 +58,18 @@ Deno.serve(async (req) => {
       content: message,
     });
 
-    // Fetch last 10 messages for context
-    const { data: history } = await supabase
+    // Fetch last 20 messages for context (newest first, then reverse to chronological)
+    const { data: historyData } = await supabase
       .from("chat_messages")
       .select("role, content")
       .eq("session_id", activeSessionId)
-      .order("created_at", { ascending: true })
-      .limit(10);
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    const history = historyData ? historyData.reverse() : [];
 
     // Build messages array for OpenAI
-    const systemPrompt = `You are a patient, encouraging tutor helping a VTU engineering student prepare for their ${subjectId.toUpperCase()} exam (course code ${courseCode}). When discussing a specific exam question, help the student understand concepts, walk through approaches step-by-step, and ask them questions to check understanding — but if they ask you to 'just give the answer', you may provide a full worked solution since this is for their personal exam prep. Keep explanations exam-focused: VTU rubrics reward stating definitions formally, showing step-by-step traces/derivations, and drawing diagrams in words when relevant. Be concise but thorough.`;
+    const systemPrompt = `You are a patient, encouraging tutor helping a VTU engineering student prepare for their ${subjectId.toUpperCase()} exam (course code ${courseCode}). When discussing a specific exam question, help the student understand concepts, walk through approaches step-by-step, and ask them questions to check understanding — but if they ask you to 'just give the answer', you may provide a full worked solution since this is for their personal exam prep. Keep explanations exam-focused: VTU rubrics reward stating definitions formally, showing step-by-step traces/derivations, and drawing diagrams in words when relevant. Be concise but thorough. Under no circumstances should you use phrases like "As an AI language model" or "I am an AI". Just provide the answer directly without meta-commentary.`;
 
     const messages: Array<{ role: string; content: string }> = [
       { role: "system", content: systemPrompt },

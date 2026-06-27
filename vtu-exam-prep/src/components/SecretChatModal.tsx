@@ -24,7 +24,7 @@ export default function SecretChatModal({ isOpen, onClose }: { isOpen: boolean; 
 
   // Load unlock state
   useEffect(() => {
-    if (localStorage.getItem('vtu_secret_chat_unlocked_v2') === 'true') {
+    if (localStorage.getItem('vtu_secret_chat_unlocked_v3') === 'true') {
       setIsUnlocked(true);
     }
   }, []);
@@ -77,9 +77,9 @@ export default function SecretChatModal({ isOpen, onClose }: { isOpen: boolean; 
 
   function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
-    if (token === 'screwpotato') {
+    if (token === 'iamscrewed') {
       setIsUnlocked(true);
-      localStorage.setItem('vtu_secret_chat_unlocked_v2', 'true');
+      localStorage.setItem('vtu_secret_chat_unlocked_v3', 'true');
       setError('');
     } else {
       setError('Invalid token.');
