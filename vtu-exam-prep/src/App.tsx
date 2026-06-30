@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import StatsPage from './pages/StatsPage';
 import DBMSPage from './pages/DBMSPage';
+import UHVPage from './pages/UHVPage';
 import AuthGate from './components/AuthGate';
 import ADAPopup from './components/ADAPopup';
 import SiteRatingPopup from './components/SiteRatingPopup';
@@ -69,6 +70,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dbms" element={<DBMSPage />} />
+          <Route path="/uhv" element={<UHVPage />} />
           <Route path="/stats" element={<StatsPage />} />
         </Routes>
         <ADAPopup />

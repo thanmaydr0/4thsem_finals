@@ -293,7 +293,7 @@ export default function AIAssistantPanel() {
                 <Sparkles size={28} className="text-muted-foreground mb-3" />
                 <p className="text-sm text-muted mb-1">
                   Ask anything about{' '}
-                  {activeSubject === 'ada' ? 'ADA' : activeSubject === 'dbms' ? 'DBMS' : 'AI'}
+                  {activeSubject === 'ada' ? 'ADA' : activeSubject === 'dbms' ? 'DBMS' : activeSubject === 'uhv' ? 'UHV' : 'AI'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   I'll help you understand concepts and prepare for your exam.

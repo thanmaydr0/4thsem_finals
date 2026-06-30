@@ -3,6 +3,7 @@ import {
   Lock,
   Ghost,
   Database,
+  BookOpen,
   ArrowRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -97,6 +98,44 @@ export default function Home() {
               )}
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#1E6B6B]/10 text-[#1E6B6B] text-[11px] font-semibold tracking-wide uppercase">
                 4 Cycles Analyzed
+              </span>
+            </div>
+          </div>
+        </Link>
+
+        
+        <Link
+          to="/uhv"
+          className="group relative bg-card border border-border p-6 rounded-2xl hover:shadow-lg transition-all duration-300 flex flex-col hover:border-[#6B1E6B]/50 hover:shadow-[#6B1E6B]/5 mt-4"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 bg-[#6B1E6B]/15">
+                <BookOpen size={26} className="text-[#6B1E6B]" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold transition-colors group-hover:text-[#6B1E6B]">
+                  UHV · BUHK408
+                </h2>
+                <p className="text-sm font-medium text-muted-foreground">Universal Human Values</p>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center text-muted group-hover:text-foreground group-hover:border-border-hover transition-all">
+              <ArrowRight size={18} />
+            </div>
+          </div>
+          
+          <p className="text-sm text-foreground/80 mb-6 italic">
+            "Interactive MCQ Study & Practice Modes for UHV"
+          </p>
+
+          <div className="mt-auto pt-4 border-t border-border/50">
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#6B1E6B]/10 text-[#6B1E6B] text-[11px] font-semibold tracking-wide uppercase">
+                Notes MCQs
+              </span>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-[#6B1E6B]/10 text-[#6B1E6B] text-[11px] font-semibold tracking-wide uppercase">
+                Past Papers
               </span>
             </div>
           </div>

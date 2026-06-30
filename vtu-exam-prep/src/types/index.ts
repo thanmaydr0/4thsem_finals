@@ -74,4 +74,4 @@ export interface ModuleWithStats extends Module {
   avgFrequency: number | null; // only meaningful for ADA
 }
 
-export type SubjectId = 'ada' | 'ai' | 'dbms';
+export type SubjectId = 'ada' | 'ai' | 'dbms' | 'uhv';
