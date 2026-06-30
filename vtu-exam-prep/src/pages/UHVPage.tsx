@@ -131,36 +131,38 @@ export default function UHVPage() {
     // Study Mode
     return (
       <div className="space-y-4 mt-4">
-        {options.map((opt) => (
-          <div
-            key={opt.key}
-            className={clsx(
-              'p-4 rounded-lg border',
-              opt.key === q.correct_answer
-                ? 'bg-emerald-900/20 border-emerald-500/50'
-                : 'bg-slate-800/50 border-slate-700'
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <span className={clsx(
-                'font-bold w-6 h-6 flex items-center justify-center rounded shrink-0',
-                opt.key === q.correct_answer ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'
-              )}>
+        <div className="space-y-3">
+          {options.map((opt) => (
+            <div
+              key={opt.key}
+              className="p-4 rounded-lg border bg-slate-800/50 border-slate-700 flex items-center gap-3"
+            >
+              <span className="font-bold w-6 h-6 flex items-center justify-center rounded bg-black/20 text-slate-300">
                 {opt.key}
               </span>
-              <div>
-                <p className={clsx('font-medium mb-1', opt.key === q.correct_answer ? 'text-emerald-300' : 'text-slate-300')}>
-                  {opt.text}
-                </p>
-                {opt.exp && (
-                  <p className="text-sm text-slate-500 leading-relaxed">
-                    {opt.exp}
-                  </p>
-                )}
-              </div>
+              <span className="text-slate-300">{opt.text}</span>
             </div>
+          ))}
+        </div>
+        
+        <div className="mt-6 p-5 rounded-xl border border-slate-700 bg-slate-800/50 animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            <span className="text-lg font-bold text-emerald-400">
+              Correct Answer: Option {q.correct_answer}
+            </span>
           </div>
-        ))}
+          <div className="space-y-3 border-t border-slate-700/50 pt-4">
+            {options.map((opt) => opt.exp ? (
+              <div key={opt.key} className="text-sm">
+                <span className={clsx("font-bold", opt.key === q.correct_answer ? "text-emerald-400" : "text-slate-300")}>
+                  Option {opt.key}:
+                </span>{' '}
+                <span className="text-slate-400 leading-relaxed">{opt.exp}</span>
+              </div>
+            ) : null)}
+          </div>
+        </div>
       </div>
     );
   };
