@@ -73,22 +73,21 @@ export default function UHVPage() {
       const isAnswered = selectedAnswer !== null;
 
       return (
-        <div className="space-y-3 mt-4">
-          {options.map((opt) => {
-            let stateClass = 'bg-slate-800 border-slate-700 hover:bg-slate-700';
-            if (isAnswered) {
-              if (opt.key === q.correct_answer) {
-                stateClass = 'bg-emerald-900/50 border-emerald-500 text-emerald-300';
-              } else if (opt.key === selectedAnswer) {
-                stateClass = 'bg-rose-900/50 border-rose-500 text-rose-300';
-              } else {
-                stateClass = 'bg-slate-800 border-slate-700 opacity-50';
+        <div className="space-y-4 mt-4">
+          <div className="space-y-3">
+            {options.map((opt) => {
+              let stateClass = 'bg-slate-800 border-slate-700 hover:bg-slate-700';
+              if (isAnswered) {
+                if (opt.key === selectedAnswer) {
+                  stateClass = 'bg-slate-700 border-slate-500 text-white';
+                } else {
+                  stateClass = 'bg-slate-800 border-slate-700 opacity-50';
+                }
               }
-            }
 
-            return (
-              <div key={opt.key} className="flex flex-col">
+              return (
                 <button
+                  key={opt.key}
                   disabled={isAnswered}
                   onClick={() => setSelectedAnswer(opt.key)}
                   className={clsx(
@@ -100,17 +99,31 @@ export default function UHVPage() {
                     {opt.key}
                   </span>
                   <span>{opt.text}</span>
-                  {isAnswered && opt.key === q.correct_answer && <CheckCircle2 className="ml-auto w-5 h-5 text-emerald-500" />}
-                  {isAnswered && opt.key === selectedAnswer && opt.key !== q.correct_answer && <XCircle className="ml-auto w-5 h-5 text-rose-500" />}
                 </button>
-                {isAnswered && opt.exp && (
-                  <div className="mt-2 text-sm text-slate-400 pl-10 border-l-2 border-slate-700 ml-3 py-1">
-                    {opt.exp}
-                  </div>
+              );
+            })}
+          </div>
+          {isAnswered && (
+            <div className="mt-6 p-5 rounded-xl border border-slate-700 bg-slate-800/50 animate-in slide-in-from-top-2">
+              <div className="flex items-center gap-2 mb-4">
+                {selectedAnswer === q.correct_answer ? (
+                  <><CheckCircle2 className="w-6 h-6 text-emerald-500" /> <span className="text-lg font-bold text-emerald-400">Correct!</span></>
+                ) : (
+                  <><XCircle className="w-6 h-6 text-rose-500" /> <span className="text-lg font-bold text-rose-400">Incorrect. The right answer is Option {q.correct_answer}</span></>
                 )}
               </div>
-            );
-          })}
+              <div className="space-y-3 border-t border-slate-700/50 pt-4">
+                {options.map((opt) => opt.exp ? (
+                  <div key={opt.key} className="text-sm">
+                    <span className={clsx("font-bold", opt.key === q.correct_answer ? "text-emerald-400" : "text-slate-300")}>
+                      Option {opt.key}:
+                    </span>{' '}
+                    <span className="text-slate-400 leading-relaxed">{opt.exp}</span>
+                  </div>
+                ) : null)}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
